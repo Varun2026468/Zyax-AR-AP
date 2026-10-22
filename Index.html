@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zyax Receivables &amp; Payables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EDF3F3;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#E9F2F2;--border:#D5E4E4;--border2:#BFD6D6;
+  --ink:#10222B;--ink2:#465863;--ink3:#7E9099;
+  --teal:#0F5C5C;--teal2:#147575;--teal-lt:#DCEEEE;--gold:#A87A06;--gold2:#D4A933;--gold-lt:#FBF3DF;
+  --red:#B3261E;--red-lt:#FDECEC;--green:#2E6B34;--green-lt:#E7F4E8;--maroon:#7B0000;--maroon-lt:#FBE9E9;--amber:#A35F00;--amber-lt:#FFF4DE;
+  --ar:#0F6E6E;--ap:#C08A0E;--ar-soft:rgba(15,110,110,.18);--ap-soft:rgba(192,138,14,.2);
+  --side-bg:#0B3E3E;--side-ink:#BFD9D9;--side-act:#155E5E;
+  --b0:#8CC3C1;--b1:#0F6E6E;--b2:#C9A227;--b3:#DB8A1F;--b4:#D2553A;--b5:#AE2A1F;--b6:#5E0B08;
+  --grid:rgba(16,34,43,.07);--shadow:0 1px 2px rgba(10,40,40,.05),0 8px 24px rgba(10,40,40,.06);
+  --font:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;--mono:'JetBrains Mono',Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1416;--surface:#111D20;--surface2:#15242727;--surface2:#152427;--surface3:#1A2E31;--border:#22393D;--border2:#2D4A4F;
+  --ink:#E4EFEF;--ink2:#A7BCBF;--ink3:#6F878B;
+  --teal:#5FC2BC;--teal2:#2A8A86;--teal-lt:#123335;--gold:#E2B84A;--gold2:#E2B84A;--gold-lt:#2B2410;
+  --red:#F07A6E;--red-lt:#3A1714;--green:#7CC683;--green-lt:#142B17;--maroon:#FF9C92;--maroon-lt:#3B1210;--amber:#F2B04C;--amber-lt:#33240C;
+  --ar:#3FB1AB;--ap:#E0B23C;--ar-soft:rgba(63,177,171,.2);--ap-soft:rgba(224,178,60,.2);
+  --side-bg:#081012;--side-ink:#9DB8BA;--side-act:#143033;
+  --b0:#2F6F6C;--b1:#3FB1AB;--b2:#D9B43E;--b3:#E8913A;--b4:#E8664C;--b5:#D2412F;--b6:#9E1C14;
+  --grid:rgba(228,239,239,.07);--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0B1416;--surface:#111D20;--surface2:#152427;--surface3:#1A2E31;--border:#22393D;--border2:#2D4A4F;
+  --ink:#E4EFEF;--ink2:#A7BCBF;--ink3:#6F878B;
+  --teal:#5FC2BC;--teal2:#2A8A86;--teal-lt:#123335;--gold:#E2B84A;--gold2:#E2B84A;--gold-lt:#2B2410;
+  --red:#F07A6E;--red-lt:#3A1714;--green:#7CC683;--green-lt:#142B17;--maroon:#FF9C92;--maroon-lt:#3B1210;--amber:#F2B04C;--amber-lt:#33240C;
+  --ar:#3FB1AB;--ap:#E0B23C;--ar-soft:rgba(63,177,171,.2);--ap-soft:rgba(224,178,60,.2);
+  --side-bg:#081012;--side-ink:#9DB8BA;--side-act:#143033;
+  --b0:#2F6F6C;--b1:#3FB1AB;--b2:#D9B43E;--b3:#E8913A;--b4:#E8664C;--b5:#D2412F;--b6:#9E1C14;
+  --grid:rgba(228,239,239,.07);--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);color-scheme:dark;
+}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+button,input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+/* SIDEBAR */
+.side{background:var(--side-bg);color:var(--side-ink);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+.brand{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.brand .co{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.brand .nm{font-size:19px;font-weight:800;color:#fff;line-height:1.15;margin-top:3px}
+.brand .tg{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px}
+.brand-strip{height:3px;background:linear-gradient(90deg,#B8860B,#E8C766,#B8860B)}
+.nav{padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.nav .grp{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 12px 6px}
+.nav button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--side-ink);transition:background .15s}
+.nav button:hover{background:rgba(255,255,255,.05)}
+.nav button.on{background:var(--side-act);color:#fff;box-shadow:inset 3px 0 0 #D4A933}
+.nav .ic{width:18px;text-align:center;font-size:14px;opacity:.9}
+.nav .cnt{margin-left:auto;font-size:10px;font-weight:700;background:rgba(255,255,255,.1);padding:1px 7px;border-radius:10px}
+.side-foot{margin-top:auto;padding:14px 18px;font-size:11px;color:rgba(255,255,255,.4);border-top:1px solid rgba(255,255,255,.07)}
+.side-foot b{color:rgba(255,255,255,.7);font-weight:600}
+/* TOPBAR */
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top h1{font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+.top .sub{font-size:12px;color:var(--ink3)}
+.top .ttl{flex:1;min-width:200px}
+.ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctl{display:flex;flex-direction:column;gap:2px}
+.ctl label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.sel,.inp{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;min-height:34px}
+.sel:focus,.inp:focus{outline:2px solid var(--teal2);outline-offset:1px}
+.seg{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px;min-height:34px}
+.seg button{border:0;background:none;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink2)}
+.seg button.on{background:var(--surface);color:var(--teal);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;white-space:nowrap}
+.btn:hover{border-color:var(--border2);background:var(--surface2)}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+:root[data-theme="dark"] .btn.pri{color:#06201F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.pri{color:#06201F}}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.icon{padding:5px 10px;font-size:16px;line-height:1}
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);min-width:250px;padding:6px;display:none;z-index:40}
+.menu.open{display:block}
+.menu button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;padding:9px 10px;border-radius:7px;cursor:pointer;font-size:13px;text-align:left}
+.menu button:hover{background:var(--surface2)}
+.menu .sep{height:1px;background:var(--border);margin:5px 4px}
+.menu small{display:block;color:var(--ink3);font-size:11px}
+/* CONTENT */
+.content{padding:24px 28px 40px;max-width:1440px;width:100%}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sec-title{font-size:12px;font-weight:800;color:var(--teal);letter-spacing:.09em;text-transform:uppercase;border-bottom:2px solid var(--teal);padding-bottom:6px;margin:30px 0 14px;display:flex;align-items:center;gap:8px}
+.sec-title .r{margin-left:auto;font-size:11px;letter-spacing:0;text-transform:none;font-weight:600;color:var(--ink3);display:flex;gap:8px;align-items:center}
+.sec-title.ghost{color:var(--maroon);border-color:var(--maroon)}
+.sec-title:first-child{margin-top:0}
+.lead{font-size:12.5px;color:var(--ink2);margin:-4px 0 12px;font-style:italic}
+.note-box{background:var(--gold-lt);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--ink2);margin-bottom:20px}
+.note-box b{color:var(--gold)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);cursor:default}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,var(--teal))}
+.card.click{cursor:pointer;transition:transform .15s,border-color .15s}
+.card.click:hover{transform:translateY(-2px);border-color:var(--border2)}
+.card .lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.card .val{font-size:27px;font-weight:800;line-height:1;letter-spacing:-.025em;color:var(--accent-ink,var(--ink))}
+.card .val small{font-size:14px;font-weight:700;margin-left:2px}
+.card .sb{font-size:11.5px;color:var(--ink2);margin-top:7px}
+.card .dl{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;margin-top:8px}
+.dl.good{background:var(--green-lt);color:var(--green)}.dl.bad{background:var(--red-lt);color:var(--red)}.dl.flat{background:var(--surface3);color:var(--ink3)}
+.c-ar{--accent:var(--ar)}.c-ap{--accent:var(--ap)}.c-red{--accent:var(--red);--accent-ink:var(--red)}.c-green{--accent:var(--green)}.c-maroon{--accent:var(--maroon);--accent-ink:var(--maroon)}.c-gold{--accent:var(--gold)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);min-width:0;margin-bottom:16px}
+.grid2 .panel,.grid3 .panel{margin-bottom:0}
+.panel h3{font-size:11px;font-weight:800;color:var(--teal);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.panel h3 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:600;color:var(--ink3)}
+.panel .hint{font-size:11px;color:var(--ink3);margin-bottom:10px}
+.ch{position:relative;width:100%;height:250px}.ch.tall{height:340px}.ch.sm{height:170px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+/* TABLES */
+.tbl-wrap{overflow:auto;border-radius:10px;border:1px solid var(--border);background:var(--surface);max-height:640px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--teal);color:#fff;padding:9px 12px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;z-index:1}
+:root[data-theme="dark"] thead th{background:#123B3B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) thead th{background:#123B3B}}
+thead.ghost th{background:#7B0000}
+thead th.sort{cursor:pointer;user-select:none}
+thead th.sort:hover{background:var(--teal2)}
+thead th .ar{opacity:.55;font-size:9px;margin-left:3px}
+th.r,td.r{text-align:right}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface3)}
+tbody tr.clk{cursor:pointer}
+tfoot td{font-weight:800;background:var(--surface2);border-top:2px solid var(--border2);position:sticky;bottom:0}
+td.name{font-weight:700;color:var(--teal)}
+td.amt,.mono{font-family:var(--mono);font-size:11.5px;font-weight:600;text-align:right;white-space:nowrap}
+td.note{font-size:11.5px;color:var(--ink2);font-style:italic;min-width:220px}
+.row-ghost td{background:var(--maroon-lt)}
+.row-warn td{background:var(--amber-lt)}
+.row-ok td{background:var(--green-lt)}
+.row-crit td{background:var(--red-lt)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap}
+.bk0{background:var(--teal-lt);color:var(--teal)}.bk1{background:var(--teal-lt);color:var(--teal)}.bk2{background:var(--gold-lt);color:var(--gold)}.bk3{background:var(--amber-lt);color:var(--amber)}.bk4,.bk5{background:var(--red-lt);color:var(--red)}.bk6{background:var(--maroon-lt);color:var(--maroon)}
+.tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;background:var(--surface3);color:var(--ink3);text-transform:uppercase}
+.tag.ar{background:var(--ar-soft);color:var(--ar)}.tag.ap{background:var(--ap-soft);color:var(--gold)}
+.neg{color:var(--red)}.pos{color:var(--green)}.mut{color:var(--ink3)}
+.bar-mini{display:flex;height:8px;border-radius:4px;overflow:hidden;min-width:90px;background:var(--surface3);gap:1px}
+.bar-mini span{display:block;height:100%}
+/* MOVERS */
+.movers{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.mbox{border-radius:12px;padding:14px 16px;border:1px solid}
+.mbox.good{background:var(--green-lt);border-color:color-mix(in srgb,var(--green) 30%,transparent)}
+.mbox.bad{background:var(--red-lt);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
+.mbox h4{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.mbox.good h4,.mbox.good .mv{color:var(--green)}.mbox.bad h4,.mbox.bad .mv{color:var(--red)}
+.mrow{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);font-size:12.5px;cursor:pointer}
+.mrow:last-child{border-bottom:0}.mrow:hover .mn{text-decoration:underline}
+.mn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mv{font-family:var(--mono);font-size:11.5px;font-weight:700;white-space:nowrap}
+.empty{font-size:12px;color:var(--ink3);font-style:italic;padding:8px 0}
+/* INSIGHTS */
+.ins{display:flex;flex-direction:column;gap:2px}
+.ins-i{display:flex;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--border);font-size:12.5px;color:var(--ink2)}
+.ins-i:last-child{border-bottom:0}
+.ins-i .dot{flex:0 0 22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px}
+.ins-i b{color:var(--ink)}
+/* filters row */
+.frow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.frow .grow{flex:1;min-width:180px}
+.frow .inp{width:100%}
+.tot-line{font-size:12px;color:var(--ink2);margin:8px 2px 0;display:flex;gap:16px;flex-wrap:wrap}
+.tot-line b{font-family:var(--mono);color:var(--ink)}
+/* DRAWER */
+.scrim{position:fixed;inset:0;background:rgba(5,20,20,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(720px,100vw);background:var(--bg);z-index:60;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.2)}
+.drawer.on{transform:none}
+.dr-h{background:var(--teal);color:#fff;padding:18px 22px;display:flex;gap:12px;align-items:flex-start}
+:root[data-theme="dark"] .dr-h{background:#0F3434}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dr-h{background:#0F3434}}
+.dr-h h2{font-size:18px;font-weight:800;line-height:1.25}
+.dr-h .x{margin-left:auto;background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;flex:0 0 34px}
+.dr-h .tg2{font-size:11px;opacity:.7;margin-top:3px}
+.dr-b{padding:18px 22px;overflow-y:auto;flex:1}
+.dr-b .cards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.dr-b .card .val{font-size:21px}
+/* MODAL */
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:70;background:rgba(5,20,20,.5);padding:16px}
+.modal.on{display:grid}
+.mdl{background:var(--surface);border-radius:16px;width:min(640px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mdl-h{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.mdl-h h2{font-size:17px;font-weight:800}
+.mdl-h .x{margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px}
+.mdl-b{padding:20px 22px}
+.drop{border:2px dashed var(--border2);border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2)}
+.drop:hover,.drop.over{border-color:var(--teal);background:var(--teal-lt)}
+.drop .big{font-size:30px;margin-bottom:6px}
+.drop b{display:block;font-size:14.5px;margin-bottom:4px}
+.drop span{font-size:12px;color:var(--ink3)}
+.parsed{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.pf{border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;gap:12px;align-items:center;font-size:12.5px}
+.pf .sd{font-weight:800;font-size:11px;padding:3px 8px;border-radius:6px}
+.pf .sd.ar{background:var(--ar-soft);color:var(--ar)}.pf .sd.ap{background:var(--ap-soft);color:var(--gold)}.pf .sd.err{background:var(--red-lt);color:var(--red)}
+.pf .meta{color:var(--ink3);font-size:11.5px}
+.mdl-f{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.mdl-f .msg{margin-right:auto;font-size:12px;color:var(--ink3)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:all .25s;z-index:90;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap}
+.foot{margin-top:30px;font-size:11px;color:var(--ink3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border);padding-top:14px}
+.hide-m{}
+@media (max-width:1100px){.grid2,.grid3,.movers{grid-template-columns:1fr}}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto}
+  .brand{padding:14px 16px}
+  .nav{flex-direction:row;overflow-x:auto;padding:8px}
+  .nav .grp,.side-foot{display:none}
+  .nav button{white-space:nowrap}
+  .top{padding:10px 16px}
+  .content{padding:16px}
+  .hide-m{display:none}
+}
+@media print{
+  body{background:#fff}
+  .side,.top .ctrls,.btn,.frow{display:none!important}
+  .app{display:block}
+  .top{position:static}
+  .content{padding:10px;max-width:100%}
+  .panel,.card,.tbl-wrap,.movers{break-inside:avoid;box-shadow:none}
+  .tbl-wrap{max-height:none;overflow:visible}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="co">Zyax Chem</div>
+      <div class="nm">AR &amp; AP Command Centre</div>
+      <div class="tg">Bills Receivable · Bills Payable · FY 2026-27</div>
+    </div>
+    <div class="brand-strip"></div>
+    <nav class="nav" id="nav">
+      <div class="grp">Summary</div>
+      <button data-v="overview" class="on"><span class="ic">◎</span>Overview</button>
+      <button data-v="movement"><span class="ic">⇅</span>Daily Movement</button>
+      <div class="grp">Receivables</div>
+      <button data-v="ar"><span class="ic">↘</span>Receivables Ageing</button>
+      <button data-v="priority"><span class="ic">●</span>Collection Priority<span class="cnt" id="cntPri">0</span></button>
+      <div class="grp">Payables</div>
+      <button data-v="ap"><span class="ic">↗</span>Payables Ageing</button>
+      <button data-v="cash"><span class="ic">₹</span>Cash Flow Outlook</button>
+      <div class="grp">Explore</div>
+      <button data-v="parties"><span class="ic">◫</span>Party Explorer</button>
+      <button data-v="register"><span class="ic">☰</span>Bill Register</button>
+      <button data-v="quality"><span class="ic">⚑</span>Data Quality<span class="cnt" id="cntDq">0</span></button>
+    </nav>
+    <div class="side-foot" id="sideFoot"></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div class="ttl">
+        <h1 id="pgTitle">Overview</h1>
+        <div class="sub" id="pgSub"></div>
+      </div>
+      <div class="ctrls">
+        <div class="ctl"><label for="selSnap">Report date</label><select id="selSnap" class="sel"></select></div>
+        <div class="ctl"><label for="selCmp">Compare with</label><select id="selCmp" class="sel"></select></div>
+        <div class="ctl hide-m"><label>Ageing basis</label><div class="seg" id="segBasis"><button data-b="due" class="on">Due date</button><button data-b="bill">Bill date</button></div></div>
+        <div class="ctl hide-m"><label>Ledgers</label><div class="seg" id="segTrade"><button data-t="all" class="on">All</button><button data-t="trade">Trade only</button></div></div>
+        <div class="ctl"><label>&nbsp;</label><button class="btn pri" id="btnLoad">⤒ Load files</button></div>
+        <div class="ctl"><label>&nbsp;</label><button class="btn icon" id="btnTheme" title="Toggle theme" aria-label="Toggle theme">◐</button></div>
+        <div class="ctl menu-wrap"><label>&nbsp;</label><button class="btn icon" id="btnMenu" aria-label="More">⋯</button>
+          <div class="menu" id="menu">
+            <button data-a="savehtml">⬇<span>Save updated dashboard (.html)<small>Embeds every loaded day — upload this to your hosting</small></span></button>
+            <button data-a="print">⎙<span>Print / PDF this view</span></button>
+            <button data-a="csv">⇩<span>Export bill register (.csv)</span></button>
+            <div class="sep"></div>
+            <button data-a="exphist">⇪<span>Export history (.json)</span></button>
+            <button data-a="imphist">⇫<span>Import history (.json)</span></button>
+            <div class="sep"></div>
+            <button data-a="delsnap">✕<span>Remove selected report date</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="view on" id="v-overview"></section>
+      <section class="view" id="v-movement"></section>
+      <section class="view" id="v-ar"></section>
+      <section class="view" id="v-priority"></section>
+      <section class="view" id="v-ap"></section>
+      <section class="view" id="v-cash"></section>
+      <section class="view" id="v-parties"></section>
+      <section class="view" id="v-register"></section>
+      <section class="view" id="v-quality"></section>
+      <div class="foot"><div><b>Zyax Chem Private Limited</b> · 24, 3rd Floor, Kamer Building, 38 Cawasji Patel Street, Fort, Mumbai 400 001</div><div id="footR">Internal use only</div></div>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"><div class="dr-h"><div><h2 id="drTitle"></h2><div class="tg2" id="drSub"></div></div><button class="x" id="drClose" aria-label="Close">×</button></div><div class="dr-b" id="drBody"></div></aside>
+
+<div class="modal" id="mLoad">
+  <div class="mdl">
+    <div class="mdl-h"><h2>Load today's Tally exports</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="mdl-b">
+      <div class="drop" id="drop">
+        <div class="big">⤒</div>
+        <b>Drop the AR &amp; AP files here, or click to browse</b>
+        <span>Tally “Bills Receivable” and “Bills Payable” exports — .xlsx / .xls / .csv. One workbook with both sheets, or two separate files, both work.</span>
+      </div>
+      <input type="file" id="fileIn" accept=".xlsx,.xls,.xlsm,.csv" multiple hidden>
+      <div class="parsed" id="parsed"></div>
+    </div>
+    <div class="mdl-f"><span class="msg" id="loadMsg">The report date is read from the file's period line (e.g. “1-Apr-26 to 22-Oct-26”).</span><button class="btn" data-close>Cancel</button><button class="btn pri" id="btnApply" disabled>Update dashboard</button></div>
+  </div>
+</div>
+<input type="file" id="histIn" accept=".json" hidden>
+<div class="toast" id="toast"></div>
+
+<script id="seed" type="application/json">{"v":1,"snaps":{"2026-10-22":{"asOf":"2026-10-22","period":"1-Apr-26 to 22-Oct-26","loadedAt":"2026-10-22T09:00:00","files":["AR & AP 2026-27.xlsx"],"ar":[["2026-04-14","2026-27/FAB/005","Maa Durga Enterprises",223842,"2026-05-14"],["2026-04-14","71727000002885","Mogli Labs (India) Pvt Ltd(Commission)",77,"2026-04-14"],["2026-04-15","2026-27/ZCPL/004","Vikas Shah (Sales)",6439,"2026-04-15"],["2026-04-18","40","Manoj Suthar (Adv for Exp)",13547,"2026-04-18"],["2026-04-21","2026-27/FAB/008","BNK Design Build Private Limited",182334,"2026-04-21"],["2026-04-21","2026-27/FAB/007","Maa Durga Enterprises",27697,"2026-05-21"],["2026-04-23","2026-27/FAB/009","Maa Durga Enterprises",478707,"2026-05-23"],["2026-04-27","2026-27/FAB/015","Maa Durga Enterprises",35811,"2026-05-27"],["2026-05-13","71727000008696","Mogli Labs (India) Pvt Ltd(Commission)",298,"2026-05-13"],["2026-05-14","2026-27/FAB/025","Orange Box Studio",24662,"2026-05-14"],["2026-05-15","71202700001752","Mogli Labs (India) Pvt Ltd(Commission)",128,"2026-05-15"],["2026-05-20","2026-27/FAB/032","Maa Durga Enterprises",38698,"2026-05-20"],["2026-05-20","71727000011309","Mogli Labs (India) Pvt Ltd(Commission)",174,"2026-05-20"],["2026-05-22","71202700001895","Mogli Labs (India) Pvt Ltd(Commission)",72,"2026-05-22"],["2026-05-22","2026-27/VP/078","Nitya Exports",2400,"2026-05-22"],["2026-05-24","71727000012633","Mogli Labs (India) Pvt Ltd(Commission)",338,"2026-05-24"],["2026-05-26","2026-27/FAB/034","Maa Durga Enterprises",86394,"2026-05-26"],["2026-05-26","2026-27/FAB/033","Pawansut Balaji Enterprises",379804,"2026-05-26"],["2026-05-29","2026-27/VP/093","Honeycomb Webworld Private Limited",9005,"2026-05-29"],["2026-06-01","EXP/SMPL/008/26","AL NASEEM TRADING AND SUSTAINABILITY SOLUTIONS AND SERVIC",61435.52,"2026-06-01"],["2026-06-02","2026-27/FAB/042","Maa Durga Enterprises",28674,"2026-06-02"],["2026-06-08","2026-27/FAB/047","Maa Durga Enterprises",35400,"2026-06-08"],["2026-06-15","2026-27/FAB/082","BNK Design Build Private Limited",1332614,"2026-06-15"],["2026-06-20","203","Harish",4000,"2026-06-20"],["2026-06-22","2026-27/FAB/053","Maa Durga Enterprises",7228,"2026-06-22"],["2026-06-26","2026-27/FAB/058","Maa Durga Enterprises",5804,"2026-06-26"],["2026-06-29","2026-27/ZCPL/097","Atlantis pool solutions",3363,"2026-06-29"],["2026-07-01","3400","Magic Care Exps",6,"2026-07-01"],["2026-07-02","2026-27/VP/149","Maa Durga Enterprises",114043,"2026-07-02"],["2026-07-02","2026-27/FAB/077","Maa Durga Enterprises",51387,"2026-07-02"],["2026-07-03","2026-27/ZCPL/100","Atlantis pool solutions",6844,"2026-07-03"],["2026-07-04","2026-27/ZCPL/102","Atlantis pool solutions",3841,"2026-07-04"],["2026-07-06","71727000030341","Mogli Labs (India) Pvt Ltd(Commission)",225,"2026-07-06"],["2026-07-07","71727000030598","Mogli Labs (India) Pvt Ltd(Commission)",56,"2026-07-07"],["2026-07-07","71727000030599","Mogli Labs (India) Pvt Ltd(Commission)",137,"2026-07-07"],["2026-07-10","2026-27/ZCPL/107","Vikas Shah (Sales)",1549,"2026-07-10"],["2026-07-16","2026-27/ZCPL/112","Atlantis pool solutions",27848,"2026-07-16"],["2026-07-17","2026-27/ZCPL/115","Atlantis pool solutions",9817.9,"2026-07-17"],["2026-07-17","2026-27/ZCPL/116","Atlantis pool solutions",2419.1,"2026-07-17"],["2026-07-17","2026-27/FAB/066","Maa Durga Enterprises",7125,"2026-07-17"],["2026-07-17","2026-27/FAB/067","Maa Durga Enterprises",45760,"2026-07-17"],["2026-07-18","2026-27/ZCPL/117","Atlantis pool solutions",3363,"2026-07-18"],["2026-07-18","037/2026-27","Digitalcubez",1200,"2026-07-18"],["2026-07-18","162","Sandeep Kumar Pandey",250,"2026-07-18"],["2026-07-20","2026-27/FAB/074","Ganesh Aatmaram More",90200,"2026-07-20"],["2026-07-21","2026-27/FAB/069","Deepali Mody",269.31,"2026-07-21"],["2026-07-21","2026-27/FAB/070","Maa Durga Enterprises",121486,"2026-07-21"],["2026-07-21","2026-27/FAB/071","Maa Durga Enterprises",501264,"2026-08-20"],["2026-07-21","2026-27/FAB/072","Pawansut Balaji Enterprises",35796,"2026-07-21"],["2026-07-22","2026-27/VP/177","Maa Durga Enterprises",23600,"2026-08-21"],["2026-07-22","71727000034102","Mogli Labs (India) Pvt Ltd(Commission)",354,"2026-07-22"],["2026-07-22","71727000034103","Mogli Labs (India) Pvt Ltd(Commission)",470,"2026-07-22"],["2026-07-22","71727000034104","Mogli Labs (India) Pvt Ltd(Commission)",872,"2026-07-22"],["2026-07-24","2026-27/ZCPL/122","Atlantis pool solutions",11889,"2026-07-24"],["2026-07-27","2026-27/ZCPL/126","Atlantis pool solutions",52498,"2026-07-27"],["2026-07-28","2026-27/ZCPL/128","Atlantis pool solutions",69030,"2026-07-28"],["2026-07-29","PI/26-27/VP/078","Star solutions",6200,"2026-07-29"],["2026-07-31","2026-27/ZCPL/131","Atlantis pool solutions",55755,"2026-07-31"],["2026-07-31","JULY-26","Loba Chemie Private Limited",2401,"2026-07-31"],["2026-08-01","EXCESS","Ask Freight ForwARDERS Pvt Ltd",13435,"2026-08-01"],["2026-08-01","2026-27/ZCPL/132","Atlantis pool solutions",7582,"2026-08-01"],["2026-08-01","2026-27/ZCPL/133","Atlantis pool solutions",9977,"2026-08-01"],["2026-08-06","2026-27/ZCPL/136","Atlantis pool solutions",20119,"2026-08-06"],["2026-08-07","71727000036783","Mogli Labs (India) Pvt Ltd(Commission)",2351,"2026-08-07"],["2026-08-08","71202700003965","Mogli Labs (India) Pvt Ltd(Commission)",2182,"2026-08-08"],["2026-08-10","2026-27/FAB/084","Maa Durga Enterprises",14302,"2026-09-09"],["2026-08-10","2026-27/FAB/085","Maa Durga Enterprises",7245,"2026-09-09"],["2026-08-11","340","Manoj Suthar (Adv for Exp)",3462,"2026-08-11"],["2026-08-11","2026-27/ZCPL/137","Minder India",113039,"2026-08-11"],["2026-08-17","2026-27/FAB/086","Maa Durga Enterprises",43471,"2026-09-16"],["2026-08-18","2026-27/FAB/087","Gajendra Jangid",12095,"2026-08-18"],["2026-08-18","2026-27/VP/221","M/S Gaymed Labs Private Limited",501630,"2026-11-01"],["2026-08-18","2026-27/VP/222","Star solutions",8796,"2026-08-18"],["2026-08-19","2026-27/ZCPL/140","Atlantis pool solutions",9977,"2026-08-19"],["2026-08-19","2026-27/ZCPL/142","Atlantis pool solutions",13458,"2026-08-19"],["2026-08-19","2026-27/ZCPL/143","Atlantis pool solutions",10443,"2026-08-19"],["2026-08-19","2026-27/ZCPL/141","Atlantis pool solutions",12272,"2026-08-19"],["2026-08-20","2026-27/ZCPL/144","Atlantis pool solutions",3481,"2026-08-20"],["2026-08-20","2026-27/ZCPL/145","Atlantis pool solutions",14697,"2026-08-20"],["2026-08-20","2026-27/ZCPL/146","Atlantis pool solutions",21824,"2026-08-20"],["2026-08-21","2026-27/ZCPL/147","Atlantis pool solutions",6933,"2026-08-21"],["2026-08-21","2026-27/ZCPL/148","Atlantis pool solutions",9499,"2026-08-21"],["2026-08-21","2026-27/ZCPL/149","Atlantis pool solutions",14903,"2026-08-21"],["2026-08-21","2026-27/ZCPL/150","Atlantis pool solutions",28993,"2026-08-21"],["2026-08-21","2026-27/ZCPL/151","Atlantis pool solutions",22686,"2026-08-21"],["2026-08-21","34","HALLMARK SERVICES - New",1283,"2026-08-21"],["2026-08-21","35","Loba Chemie Private Limited",5216,"2026-11-04"],["2026-08-22","2026-27/ZCPL/152","Atlantis pool solutions",8059,"2026-08-22"],["2026-08-22","2026-27/ZCPL/154","Atlantis pool solutions",9977,"2026-08-22"],["2026-08-22","2026-27/ZCPL/153","Atlantis pool solutions",844,"2026-08-22"],["2026-08-24","2026-27/VP/235","M/S Gaymed Labs Private Limited",615854,"2026-11-07"],["2026-08-24","2026-27/VP/229","Ram Pravinchand Gandhi",78349,"2026-08-24"],["2026-08-25","2026-27/FAB/095","Raj Dugar",7750,"2026-08-25"],["2026-08-26","2026-27/VP/238","Vasundhara Develocus Llp",78317,"2026-08-26"],["2026-08-31","AUG-26","Loba Chemie Private Limited",4925,"2026-08-31"],["2026-09-01","GJ1262707AN24655","INTER GLOBE AVIATION LIMITED INDIGO -GUJ",1,"2026-09-01"],["2026-09-02","2026-27/ZCPL/159","Atlantis pool solutions",844,"2026-09-02"],["2026-09-04","2026-27/ZCPL/163","Atlantis pool solutions",844,"2026-09-04"],["2026-09-04","2026-27/FAB/100","Mr Acharya",742,"2026-09-04"],["2026-09-08","2026-27/VP/274","Arc Infrastructure",14769,"2026-09-08"],["2026-09-08","2026-27/VP/266","B. F. Fashions Pvt Ltd",16284,"2026-09-08"],["2026-09-08","2026-27/VP/267","M/S Gaymed Labs Private Limited",749141,"2026-11-22"],["2026-09-09","2026-27/ZCPL/167","Atlantis pool solutions",478,"2026-09-09"],["2026-09-09","2026-27/ZCPL/168","Atlantis pool solutions",844,"2026-09-09"],["2026-09-09","2026-27/ZCPL/169","Atlantis pool solutions",2655,"2026-09-09"],["2026-09-10","71727000040837","Mogli Labs (India) Pvt Ltd(Commission)",116,"2026-09-10"],["2026-09-15","2026-27/VP/273","Ajay Decorators",4341,"2026-09-15"],["2026-09-16","EXP/ZCPL/002/26","AL NASEEM TRADING AND SUSTAINABILITY SOLUTIONS AND SERVIC",61349.11,"2026-09-16"],["2026-09-16","2026-27/FAB/104","JMJ Maxrich Buildcon",135388,"2026-09-16"],["2026-09-17","EXP/ZCPL/004/26","KAF GROUP FOR INSULATION MATERIALS COMPANY",1042502.87,"2026-09-17"],["2026-09-18","2026-27/VP/280","M/S Gaymed Labs Private Limited",114224,"2026-12-02"],["2026-09-19","2026-27/VP/281","Coujo Triumph Llp",37170,"2026-09-19"],["2026-09-19","2026-27/FAB/106","HALLMARK SERVICES - New",28226,"2026-09-19"],["2026-09-19","2026-27/VP/287","Novaa Living",91790,"2026-09-19"],["2026-09-19","2026-27/VP/282","The Positivist",15000,"2026-09-19"],["2026-09-22","2026-27/ZCPL/177","KALADEEP CORPORATE",5712,"2026-09-22"],["2026-09-24","PI/26-27/VP/117","Vishal Enterprises",1,"2026-09-24"],["2026-09-25","2026-27/ZCPL/180","Atlantis pool solutions",478,"2026-09-25"],["2026-09-25","2026-27/ZCPL/181","Atlantis pool solutions",3481,"2026-09-25"],["2026-09-25","2026-27/ZCPL/182","Atlantis pool solutions",10390,"2026-09-25"],["2026-09-25","2026-27/ZCPL/183","Atlantis pool solutions",844,"2026-09-25"],["2026-09-25","2026-27/ZCPL/184","Atlantis pool solutions",2655,"2026-09-25"],["2026-09-25","2026-27/ZCPL/185","Atlantis pool solutions",478,"2026-09-25"],["2026-09-25","2026-27/ZCPL/186","Atlantis pool solutions",23777,"2026-09-25"],["2026-09-25","2026-27/ZCPL/187","Atlantis pool solutions",36509,"2026-09-25"],["2026-09-25","2026-27/ZCPL/188","Atlantis pool solutions",13688,"2026-09-25"],["2026-09-25","2026-27/VP/292","Maa Durga Enterprises",13048,"2026-09-25"],["2026-09-28","2026-27/ZCPL/190","Atlantis pool solutions",4207,"2026-09-28"],["2026-09-28","2026-27/ZCPL/191","Atlantis pool solutions",16083,"2026-09-28"],["2026-09-28","2026-27/ZCPL/192","Atlantis pool solutions",478,"2026-09-28"],["2026-09-28","2026-27/ZCPL/193","Atlantis pool solutions",2531,"2026-09-28"],["2026-09-28","2026-27/ZCPL/194","Atlantis pool solutions",8744,"2026-09-28"],["2026-09-28","2026-27/ZCPL/196","Atlantis pool solutions",478,"2026-09-28"],["2026-09-28","2026-27/ZCPL/197","Atlantis pool solutions",844,"2026-09-28"],["2026-09-28","2026-27/ZCPL/198","Atlantis pool solutions",2808,"2026-09-28"],["2026-09-28","2026-27/ZCPL/199","Atlantis pool solutions",6726,"2026-09-28"],["2026-09-28","2026-27/ZCPL/200","Atlantis pool solutions",11381,"2026-09-28"],["2026-09-28","2026-27/ZCPL/201","Atlantis pool solutions",21824,"2026-09-28"],["2026-09-28","2026-27/ZCPL/202","Atlantis pool solutions",844,"2026-09-28"],["2026-09-28","2026-27/ZCPL/203","Atlantis pool solutions",6962,"2026-09-28"],["2026-09-28","2026-27/ZCPL/204","Atlantis pool solutions",3481,"2026-09-28"],["2026-09-28","2026-27/VP/296","B. F. Fashions Pvt Ltd",1239,"2026-09-28"],["2026-09-30","2026-27/VP/299","Indus Techpark Pvt Ltd",99075,"2026-09-30"],["2026-09-30","2026-27/VP/300","Lila Furnishings Pvt. Ltd.",5163,"2026-09-30"],["2026-09-30","30.9","Loba Chemie Private Limited",3360,"2026-09-30"],["2026-09-30","71627000025949","Mogli Labs (India) Pvt Ltd(Commission)",0.01,"2026-09-30"],["2026-09-30","307","Shree Ram Power Tools",4460,"2026-09-30"],["2026-10-01","PI/26-27/VP/148","Professional Pools (Delhi)",9363,"2026-10-01"],["2026-10-07","PI/26-27/VP/156","Samek Impex",76416,"2026-10-07"],["2026-10-07","2026-27/VP/308","Star solutions",106200,"2026-10-07"],["2026-10-12","2026-27/ZCPL/208","Atlantis pool solutions",478,"2026-10-12"],["2026-10-13","BF/06238","Lila Furnishings Pvt. Ltd.",2375,"2026-10-13"],["2026-10-13","PI/FAB/26-27/096","Mahalaxmi Millennium Agencies P Ltd",0.24,"2026-10-13"],["2026-10-15","2026-27/ZCPL/213","Atlantis pool solutions",4885,"2026-10-15"],["2026-10-15","2026-27/VP/317","Kallpam Trading",610798,"2026-10-15"],["2026-10-15","2026-27/FAB/124","Kallpam Trading",37394,"2026-10-15"],["2026-10-16","2026-27/ZCPL/216","Atlantis pool solutions",64806,"2026-10-16"],["2026-10-16","2026-27/ZCPL/217","Atlantis pool solutions",844,"2026-10-16"],["2026-10-16","2026-27/ZCPL/218","Atlantis pool solutions",157524,"2026-10-16"],["2026-10-17","2026-27/ZCPL/221","Atlantis pool solutions",7918,"2026-10-17"],["2026-10-17","2026-27/ZCPL/222","Atlantis pool solutions",6962,"2026-10-17"],["2026-10-17","2026-27/ZCPL/223","Atlantis pool solutions",12307,"2026-10-17"]],"ap":[["2026-04-01","APR-26","TDS on Professional Fees",1,"2026-04-01"],["2026-04-04","CN/FAB/26-27/001","Maa Durga Enterprises",9990,"2026-04-04"],["2026-04-07","26-27/038/GST","KIRAN MEHTA & CO",17700,"2026-04-07"],["2026-04-13","2790","Home Care",640,"2026-04-13"],["2026-04-17","54","Maa Durga Enterprises",500000,"2026-04-17"],["2026-04-19","MM-26/27-71","Mailmodo Technologies Pvt Ltd",6479,"2026-04-19"],["2026-04-21","CN/FAB/25-26/21","Maa Durga Enterprises",109008,"2026-04-21"],["2026-04-30","5563153790","Google India Pvt Ltd",5406,"2026-04-30"],["2026-04-30","5566158784","Google India Pvt Ltd",25867,"2026-04-30"],["2026-04-30","INV262700425","IB MONOTARO PRIVATE LIMITED",743,"2026-04-30"],["2026-04-30","21","Maa Durga Enterprises",49948,"2026-04-30"],["2026-04-30","P26271723010","PHONEPE PRIVATE LIMITED",4208,"2026-04-30"],["2026-04-30","APR-26","Sumit Adv for Exps",10000,"2026-04-30"],["2026-05-01","CN/FAB/26-27/003","Maa Durga Enterprises",15293,"2026-05-01"],["2026-05-01","3344","Magic Care Exps",10692,"2026-05-01"],["2026-05-01","May 26","TDS on Contract Co",2,"2026-05-01"],["2026-05-01","MAY-26","TDS on Professional Fees",1,"2026-05-01"],["2026-05-06","2800","Home Care",960,"2026-05-06"],["2026-05-06","SS/26-27/030","Saitech Systems",708,"2026-05-06"],["2026-05-12","155","Maa Durga Enterprises",700000,"2026-05-12"],["2026-05-17","3358","Magic Care Exps",3168,"2026-05-17"],["2026-05-18","3360","Magic Care Exps",52273,"2026-05-18"],["2026-05-18","3359","Magic Care Exps",36234,"2026-05-18"],["2026-05-19","MM-26/27-230","Mailmodo Technologies Pvt Ltd",6479,"2026-05-19"],["2026-05-22","262734156150","Avinash Cargo Private Limited",3295,"2026-05-22"],["2026-05-22","262734156153","Avinash Cargo Private Limited",2250,"2026-05-22"],["2026-05-22","3364","Magic Care Exps",49500,"2026-05-22"],["2026-05-24","SLRSI9016126","Infiniti Retail Limited (Croma)",9974,"2026-05-24"],["2026-05-31","5593706137","Google India Pvt Ltd",19235,"2026-05-31"],["2026-05-31","INV262700892","IB MONOTARO PRIVATE LIMITED",1641,"2026-05-31"],["2026-05-31","Purchase","Maa Durga Enterprises",94857,"2026-06-30"],["2026-05-31","P26276794272","PHONEPE PRIVATE LIMITED",3095,"2026-05-31"],["2026-06-01","60","Amar Reimbursement Exps",3210,"2026-06-01"],["2026-06-01","262734189559","Avinash Cargo Private Limited",1810,"2026-06-01"],["2026-06-01","262734189585","Avinash Cargo Private Limited",2350,"2026-06-01"],["2026-06-01","006/2026-27","Digitalcubez",20640,"2026-06-01"],["2026-06-01","JUN-26","TDS on Contract",1,"2026-06-01"],["2026-06-02","58","Amar Reimbursement Exps",870,"2026-06-02"],["2026-06-02","187","Pawansut Balaji Enterprises",1271,"2026-06-02"],["2026-06-09","54","Amar Reimbursement Exps",1550,"2026-06-09"],["2026-06-10","001","Maa Durga Enterprises",500000,"2026-06-10"],["2026-06-12","56","Amar Reimbursement Exps",1040,"2026-06-12"],["2026-06-12","262734233025","Avinash Cargo Private Limited",3157,"2026-06-12"],["2026-06-12","262734233026","Avinash Cargo Private Limited",1645,"2026-06-12"],["2026-06-13","57","Amar Reimbursement Exps",965,"2026-06-13"],["2026-06-15","26-27/219/TDS","KIRAN MEHTA & CO",11800,"2026-06-15"],["2026-06-16","PROF/ZCPL/043","Atlantis pool solutions",47790,"2026-06-16"],["2026-06-16","JUN-26","TDS on Contract Co",1,"2026-06-16"],["2026-06-17","99-26/27","Mirror Touch",46200,"2026-06-17"],["2026-06-17","2026-27/FAB/052","Mr. Ratan",2382,"2026-06-17"],["2026-06-18","55","Amar Reimbursement Exps",2220,"2026-06-18"],["2026-06-19","MM-26/27-379","Mailmodo Technologies Pvt Ltd",6479,"2026-06-19"],["2026-06-20","59","Amar Reimbursement Exps",1410,"2026-06-20"],["2026-06-20","ACSKL/26-27/2067","ARKCA CORPORATE SOLUTIONS PRIVATE LIMITED",15310,"2026-06-20"],["2026-06-23","INVMUMEVE50714","Bni India Enterprises Private Limited",2360,"2026-06-23"],["2026-06-29","262734295673","Avinash Cargo Private Limited",1522,"2026-06-29"],["2026-06-30","5618744266","Google India Pvt Ltd",21458,"2026-06-30"],["2026-06-30","INV262701424","IB MONOTARO PRIVATE LIMITED",1289,"2026-06-30"],["2026-06-30","P26278645998","PHONEPE PRIVATE LIMITED",3867,"2026-06-30"],["2026-06-30","P26279575548","PHONEPE PRIVATE LIMITED",785,"2026-06-30"],["2026-07-01","3391","Magic Care Exps",23760,"2026-07-01"],["2026-07-01","3399","Magic Care Exps",1980,"2026-07-01"],["2026-07-01","3392","Magic Care Exps",2475,"2026-07-01"],["2026-07-01","3500","Magic Care Exps",600,"2026-07-01"],["2026-07-01","FABRIC","Mahalaxmi Enterprises",10000,"2026-07-01"],["2026-07-01","108","Preeti Sharma",18000,"2026-07-01"],["2026-07-04","2026-27/VP/154","Star solutions",619,"2026-07-04"],["2026-07-06","262734322320","Avinash Cargo Private Limited",1745,"2026-07-06"],["2026-07-06","L03992","Loba Chemie Private Limited",167757,"2026-09-19"],["2026-07-07","727","Maa Durga Enterprises (Purchase)",7269,"2026-07-07"],["2026-07-08","L03843","Loba Chemie Private Limited",142072,"2026-09-21"],["2026-07-09","26-27/022/PT","Praful Doshi & Co.",2360,"2026-07-09"],["2026-07-10","754","Maa Durga Enterprises (Purchase)",1877,"2026-07-10"],["2026-07-10","402","Swimwell Pools India Private Limited",720,"2026-07-10"],["2026-07-13","L04060","Loba Chemie Private Limited",70505,"2026-07-13"],["2026-07-14","L04142","Loba Chemie Private Limited",56286,"2026-09-27"],["2026-07-14","780","Maa Durga Enterprises (Purchase)",23435,"2026-07-14"],["2026-07-18","161","Sanjay Chaudhary",47027,"2026-07-18"],["2026-07-19","MM-26/27-534","Mailmodo Technologies Pvt Ltd",6479,"2026-07-19"],["2026-07-20","L04426","Loba Chemie Private Limited",38633,"2026-10-03"],["2026-07-21","L04471","Loba Chemie Private Limited",101834,"2026-10-04"],["2026-07-22","L04476","Loba Chemie Private Limited",73986,"2026-10-05"],["2026-07-22","L04488","Loba Chemie Private Limited",462454,"2026-10-05"],["2026-07-24","L04539","Loba Chemie Private Limited",129033,"2026-10-07"],["2026-07-27","L04717","Loba Chemie Private Limited",16815,"2026-10-10"],["2026-07-27","M00229","Loba Chemie Private Limited",4253,"2026-10-10"],["2026-07-28","BOM2600147015","Jas Forwarding",2.61,"2026-07-28"],["2026-07-28","L04772","Loba Chemie Private Limited",432005,"2026-10-11"],["2026-07-29","M00237","Loba Chemie Private Limited",8400,"2026-10-12"],["2026-07-30","GST/06544/2627","Antraweb Technologies Pvt. Ltd.",40608,"2026-07-30"],["2026-07-30","L04877","Loba Chemie Private Limited",73443,"2026-10-13"],["2026-07-31","1.7.26 TO 31.7.26","Aamir (Adv for Exps)",11230,"2026-07-31"],["2026-07-31","July-26","Amar Reimbursement Exps",800,"2026-07-31"],["2026-07-31","262734425951","Avinash Cargo Private Limited",3508,"2026-07-31"],["2026-07-31","5648179736","Google India Pvt Ltd",35246,"2026-07-31"],["2026-07-31","INV262702208","IB MONOTARO PRIVATE LIMITED",538,"2026-07-31"],["2026-07-31","L04880","Loba Chemie Private Limited",462454,"2026-10-14"],["2026-07-31","From 22.7.26 to 31.7.26","Manoj Suthar (Adv for Exp)",3462,"2026-07-31"],["2026-07-31","P262711682344","PHONEPE PRIVATE LIMITED",250,"2026-07-31"],["2026-07-31","P262715589767","PHONEPE PRIVATE LIMITED",1922,"2026-07-31"],["2026-08-01","2026-27/3266","Merchant Trading Corporation",2340,"2026-08-01"],["2026-08-01","2026-27/1053","Merchant Trading Corporation",3209,"2026-08-01"],["2026-08-01","2026-27/1775","Merchant Trading Corporation",1560,"2026-08-01"],["2026-08-01","205","Sanjay Chaudhary",30051,"2026-08-01"],["2026-08-01","D00056","Shree Mahalakshmi Enterprises",67929,"2026-08-01"],["2026-08-03","L05019","Loba Chemie Private Limited",147653,"2026-10-17"],["2026-08-03","L04979","Loba Chemie Private Limited",266509,"2026-10-17"],["2026-08-04","L05058","Loba Chemie Private Limited",46728,"2026-10-18"],["2026-08-05","CBEXIII_BOM_2026-2027_0508_18188","Faber Chimica",5344.8,"2026-08-05"],["2026-08-06","L05144","Loba Chemie Private Limited",14325,"2026-10-20"],["2026-08-06","L05167","Loba Chemie Private Limited",144432,"2026-10-20"],["2026-08-08","518","Minder India",50000,"2026-08-08"],["2026-08-10","L05144L05320","Loba Chemie Private Limited",16992,"2026-10-24"],["2026-08-10","L05354","Loba Chemie Private Limited",296878,"2026-10-24"],["2026-08-10","523","Minder India",6309,"2026-08-10"],["2026-08-10","524","Minder India",56730,"2026-08-10"],["2026-08-11","110/26-27","Rirev Marketing Consultants LLP",4000,"2026-08-11"],["2026-08-12","L05405","Loba Chemie Private Limited",15977,"2026-10-26"],["2026-08-13","2026-27/FAB/089","JMJ Maxrich Buildcon",75000,"2026-08-13"],["2026-08-13","L05490","Loba Chemie Private Limited",17228,"2026-10-27"],["2026-08-13","L05524","Loba Chemie Private Limited",115770,"2026-10-27"],["2026-08-17","262734482816","Avinash Cargo Private Limited",2778,"2026-08-17"],["2026-08-17","26494","Designscape Technologies Pvt. Ltd.",26056,"2026-08-17"],["2026-08-17","L05565","Loba Chemie Private Limited",462454,"2026-10-31"],["2026-08-19","L05709","Loba Chemie Private Limited",364325,"2026-11-02"],["2026-08-20","CN/FAB/26-27/008","Maa Durga Enterprises",28674,"2026-08-20"],["2026-08-22","26-27/JAI038","Jalaqua International Limited",233144,"2026-09-21"],["2026-08-22","L05871","Loba Chemie Private Limited",7980,"2026-11-05"],["2026-08-24","L05922","Loba Chemie Private Limited",549892,"2026-11-07"],["2026-08-24","L05941","Loba Chemie Private Limited",628102,"2026-11-07"],["2026-08-27","1005","Infiniti Retail Limited (Croma)",7990,"2026-08-27"],["2026-08-27","L06131","Loba Chemie Private Limited",885767,"2026-11-10"],["2026-08-31","5676323082","Google India Pvt Ltd",21891,"2026-08-31"],["2026-08-31","INV262702814","IB MONOTARO PRIVATE LIMITED",1735,"2026-08-31"],["2026-08-31","L06216","Loba Chemie Private Limited",485157,"2026-11-14"],["2026-08-31","L06189","Loba Chemie Private Limited",431898,"2026-11-14"],["2026-08-31","P262717892420","PHONEPE PRIVATE LIMITED",296,"2026-08-31"],["2026-08-31","P262719801213","PHONEPE PRIVATE LIMITED",4656,"2026-08-31"],["2026-09-01","A0212/26-27","Ask Freight ForwARDERS Pvt Ltd",13020,"2026-09-01"],["2026-09-01","26443","Designscape Technologies Pvt. Ltd.",8640,"2026-09-01"],["2026-09-01","2026/JUL/433","Dial4cleanhome.Com",2900,"2026-09-01"],["2026-09-01","8152670620","INDIAN RAILWAY CATERING AND TOURISM CORPORATION LTD",910,"2026-09-01"],["2026-09-01","L06263","Loba Chemie Private Limited",28007,"2026-11-15"],["2026-09-01","63/26-27","Rirev Marketing Consultants LLP",43200,"2026-09-01"],["2026-09-01","SS/26-27/139","Saitech Systems",6950,"2026-09-01"],["2026-09-01","D00072","Shree Mahalakshmi Enterprises",1,"2026-09-01"],["2026-09-01","SEP-26","TDS on Professional Fees",1,"2026-09-01"],["2026-09-04","L06450","Loba Chemie Private Limited",537779,"2026-11-18"],["2026-09-05","26-27/218","Belims Pet Products",94400,"2026-09-05"],["2026-09-08","INVMUMEVE59034","Bni India Enterprises Private Limited",2103,"2026-09-08"],["2026-09-08","L06586","Loba Chemie Private Limited",72865,"2026-11-22"],["2026-09-08","L06561","Loba Chemie Private Limited",14840,"2026-11-22"],["2026-09-08","L06589","Loba Chemie Private Limited",870899,"2026-11-22"],["2026-09-08","L06563","Loba Chemie Private Limited",693681,"2026-11-22"],["2026-09-09","26479","Designscape Technologies Pvt. Ltd.",604,"2026-09-09"],["2026-09-09","SS/26-27/150","Saitech Systems",6372,"2026-09-09"],["2026-09-10","L06725","Loba Chemie Private Limited",587839,"2026-11-24"],["2026-09-11","L06780","Loba Chemie Private Limited",38294,"2026-11-25"],["2026-09-11","L06757","Loba Chemie Private Limited",8484,"2026-11-25"],["2026-09-11","133/26-27","Rirev Marketing Consultants LLP",43200,"2026-09-11"],["2026-09-13","1284","Maa Durga Enterprises (Purchase)",1700,"2026-09-13"],["2026-09-15","2026-27/ZCPL/173","KALADEEP CORPORATE",624,"2026-09-15"],["2026-09-15","L06903","Loba Chemie Private Limited",15375,"2026-11-29"],["2026-09-16","B100006848392214","INDIAN RAILWAY CATERING AND TOURISM CORPORATION LTD",412,"2026-09-16"],["2026-09-16","B100006848392335","INDIAN RAILWAY CATERING AND TOURISM CORPORATION LTD",162,"2026-09-16"],["2026-09-17","GG/1","Garima Gautam",3270,"2026-09-17"],["2026-09-17","L07003","Loba Chemie Private Limited",15960,"2026-12-01"],["2026-09-17","L06999","Loba Chemie Private Limited",13830,"2026-12-01"],["2026-09-17","L06985","Loba Chemie Private Limited",16992,"2026-12-01"],["2026-09-18","L07046","Loba Chemie Private Limited",161247,"2026-12-02"],["2026-09-19","M00366","Loba Chemie Private Limited",10080,"2026-12-03"],["2026-09-21","8863840627","INDIAN RAILWAY CATERING AND TOURISM CORPORATION LTD",5205,"2026-09-21"],["2026-09-22","8863846885","INDIAN RAILWAY CATERING AND TOURISM CORPORATION LTD",1653,"2026-09-22"],["2026-09-22","L07198","Loba Chemie Private Limited",616479,"2026-12-06"],["2026-09-23","L07277","Loba Chemie Private Limited",255175,"2026-12-07"],["2026-09-23","6844161446","VRL LOGISTICS LIMITED",1500,"2026-09-23"],["2026-09-24","L07289","Loba Chemie Private Limited",39335,"2026-12-08"],["2026-09-24","1372","Maa Durga Enterprises (Purchase)",3612,"2026-09-24"],["2026-09-25","26524","Designscape Technologies Pvt. Ltd.",3618,"2026-09-25"],["2026-09-25","MHSR001022331","DHL Express (India ) Pvt Ltd",11995,"2026-09-25"],["2026-09-29","INV/26-27/2826","Cossmic Products Pvt Ltd.",61950,"2026-09-29"],["2026-09-29","M00384","Loba Chemie Private Limited",33600,"2026-12-13"],["2026-09-30","298","Akash Kumar (REIMBURSEMENT)",1190,"2026-09-30"],["2026-09-30","Sep-26","Amar Reimbursement Exps",760,"2026-09-30"],["2026-09-30","2026-27/ZCPL/215","Aquaaworld greentech Pvt Ltd",208,"2026-09-30"],["2026-09-30","5705417135","Google India Pvt Ltd",10085,"2026-09-30"],["2026-09-30","INV26703121","IB MONOTARO PRIVATE LIMITED",1173,"2026-09-30"],["2026-09-30","L07599","Loba Chemie Private Limited",60982,"2026-12-14"],["2026-09-30","299","Mohammad Jaid (REIMBURSEMENT)",1300,"2026-09-30"],["2026-09-30","307","Munavar Ali Sheikh (Adv for Exps)",17833,"2026-09-30"],["2026-09-30","P262723317501","PHONEPE PRIVATE LIMITED",1462,"2026-09-30"],["2026-09-30","P262721298166","PHONEPE PRIVATE LIMITED",90.9,"2026-09-30"],["2026-09-30","SEO/076/2026-27","SEO Blueprint",17263,"2026-09-30"],["2026-09-30","SEO/079/2026-27","SEO Blueprint",15824,"2026-09-30"],["2026-09-30","26-27/012","Trifli Technologies (Remuneration)",216000,"2026-09-30"],["2026-10-01","ACSKL/26-27/5444","ARKCA CORPORATE SOLUTIONS PRIVATE LIMITED",2360,"2026-10-01"],["2026-10-01","N2627/000088380","Easebuzz Pvt Ltd",3405,"2026-10-01"],["2026-10-01","53/26-27","EBONY ESTATES PRIVATE LIMITED",126100.8,"2026-10-01"],["2026-10-01","GKHR/2627/035554","Gokwik Commerce Solutions Pvt Ltd",944,"2026-10-01"],["2026-10-01","L07678","Loba Chemie Private Limited",3918,"2026-12-15"],["2026-10-01","151/26","Mirabilis INC.",54000,"2026-10-01"],["2026-10-01","SNS-202627-29","Satyanarayan Singh",58000,"2026-10-01"],["2026-10-01","783","Smith & Thomson Capital Advisory Services Private Limited",1,"2026-10-01"],["2026-10-01","OCT-26","TDS on Contract Co",1410,"2026-10-01"],["2026-10-01","OCT-26","TDS on Professional Fees",10700,"2026-10-01"],["2026-10-03","322","BNK Design Build Private Limited",350000.2,"2026-10-03"],["2026-10-05","INVMUMEVE59776","Bni India Enterprises Private Limited",2103.94,"2026-10-05"],["2026-10-05","L07787","Loba Chemie Private Limited",753029,"2026-12-19"],["2026-10-05","L07745","Loba Chemie Private Limited",379028,"2026-12-19"],["2026-10-06","239","Atrayee Dutta Gupta",20000,"2026-10-06"],["2026-10-06","HF2727I012055848","Bharti Airtel Limited",1886.82,"2026-10-06"],["2026-10-06","26549","Designscape Technologies Pvt. Ltd.",8260,"2026-10-06"],["2026-10-07","L07916","Loba Chemie Private Limited",7980,"2026-12-21"],["2026-10-07","1488","Maa Durga Enterprises (Purchase)",22479,"2026-10-07"],["2026-10-08","1492","Maa Durga Enterprises (Purchase)",14986,"2026-10-08"],["2026-10-09","PG01","Aditya Goyal",25000,"2026-10-09"],["2026-10-09","MHSR001026709","DHL Express (India ) Pvt Ltd",7802.52,"2026-10-09"],["2026-10-09","L08021","Loba Chemie Private Limited",31920,"2026-12-23"],["2026-10-11","157/26-27","Rirev Marketing Consultants LLP",54000,"2026-10-11"],["2026-10-12","AD01","Aditya Goyal",20000,"2026-10-12"],["2026-10-12","L08072","Loba Chemie Private Limited",358868,"2026-12-26"],["2026-10-13","L08174","Loba Chemie Private Limited",606638,"2026-12-27"],["2026-10-14","GST/10405/2627","Antraweb Technologies Pvt. Ltd.",60588,"2026-10-14"],["2026-10-14","Invoice no. : 1","Pallavi Devi",6000,"2026-10-14"],["2026-10-14","Oct -2026","TDS on Professional Fees",5610,"2026-10-14"],["2026-10-16","MHSR001028750","DHL Express (India ) Pvt Ltd",23771,"2026-10-16"],["2026-10-16","L08356","Loba Chemie Private Limited",13122,"2026-12-30"],["2026-10-16","CN/FAB/26-27/009","Maa Durga Enterprises",776796,"2026-10-16"],["2026-10-16","CN/FAB/26-27/010","Pawansut Balaji Enterprises",348115,"2026-10-16"],["2026-10-16","329","Teena Adv for Exp",428,"2026-10-16"],["2026-10-17","NST/26-27/0058","Next Step Technologies",2124,"2026-10-17"],["2026-10-17","332","Teena Adv for Exp",417.08,"2026-10-17"],["2026-10-18","NH92181524793348","MakemyTrip (India) Pvt Ltd",4149,"2026-10-18"],["2026-10-21","65/26-27","IBI India Corporation",106200,"2026-10-21"]]}}}</script>
+<script>
+(function(){
+'use strict';
+/* Capture pristine source first so "Save updated dashboard" can re-embed data */
+const PRISTINE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+/* ───────── Utilities ───────── */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DAY = 864e5;
+const D = iso => { const [y,m,d] = iso.split('-').map(Number); return Date.UTC(y, m-1, d); };
+const ISO = t => new Date(t).toISOString().slice(0,10);
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtD = iso => { if(!iso) return '—'; const [y,m,d] = iso.split('-'); return `${+d} ${MON[+m-1]} ${y}`; };
+const fmtDs = iso => { if(!iso) return '—'; const [y,m,d] = iso.split('-'); return `${+d}-${MON[+m-1]}`; };
+const inr = n => (n < 0 ? '−' : '') + '₹' + Math.round(Math.abs(n)).toLocaleString('en-IN');
+const short = n => { const a = Math.abs(n), s = n < 0 ? '−' : '';
+  if (a >= 1e7) return s + '₹' + (a/1e7).toFixed(2) + ' Cr';
+  if (a >= 1e5) return s + '₹' + (a/1e5).toFixed(2) + 'L';
+  if (a >= 1e3) return s + '₹' + (a/1e3).toFixed(1) + 'K';
+  return s + '₹' + Math.round(a); };
+const lakh = n => +(n/1e5).toFixed(2);
+const pct = (a,b) => b ? (a/b*100).toFixed(1) + '%' : '—';
+const pk = s => String(s||'').replace(/\s+/g,' ').trim().toUpperCase();
+const clean = s => String(s||'').replace(/\s+/g,' ').trim();
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+};
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'), 3200); }
+function download(name, text, type){ const b = new Blob([text], {type}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 500); }
+
+/* ───────── Data / state ───────── */
+const LS_KEY = 'zyax_arap_dash_v1';
+const SEED = (()=>{ try { return JSON.parse($('#seed').textContent); } catch(e){ return {v:1, snaps:{}}; } })();
+const local = store.get(LS_KEY, {snaps:{}, deleted:[], overrides:{}, prefs:{}});
+local.snaps = local.snaps || {}; local.deleted = local.deleted || []; local.overrides = local.overrides || {}; local.prefs = local.prefs || {};
+let SNAPS = {};
+function rebuildSnaps(){
+  SNAPS = Object.assign({}, SEED.snaps || {}, local.snaps);
+  for (const d of local.deleted) delete SNAPS[d];
+}
+rebuildSnaps();
+function persist(){ if(!store.set(LS_KEY, local)) toast('Browser storage unavailable — use “Save updated dashboard” to keep today\'s data'); }
+const dates = () => Object.keys(SNAPS).sort();
+
+const state = {
+  view: 'overview', snap: null, cmp: null,
+  basis: local.prefs.basis || 'due', trade: local.prefs.trade || 'all',
+  thr: 50000, prSide: 'ar', cashOverdue: true,
+  reg: {side:'all', bucket:'all', q:'', min:'', sort:'days', dir:-1},
+  pty: {q:'', sort:'total', dir:-1, filter:'all'},
+  sorts: {}
+};
+function initDates(){
+  const ds = dates();
+  if (!ds.includes(state.snap)) state.snap = ds[ds.length-1] || null;
+  const i = ds.indexOf(state.snap);
+  if (state.cmp !== 'none' && (!ds.includes(state.cmp) || state.cmp >= state.snap)) state.cmp = i > 0 ? ds[i-1] : 'none';
+}
+
+const BK_DUE = ['Not due','1–30','31–60','61–90','91–120','121–150','151+'];
+const BK_BILL = ['Today','1–30','31–60','61–90','91–120','121–150','151+'];
+const BK = () => state.basis === 'bill' ? BK_BILL : BK_DUE;
+const bIdx = d => d <= 0 ? 0 : d <= 30 ? 1 : d <= 60 ? 2 : d <= 90 ? 3 : d <= 120 ? 4 : d <= 150 ? 5 : 6;
+const bColors = () => [0,1,2,3,4,5,6].map(i => css('--b'+i));
+const NT_RE = /adv(ance)?\.?\s*(for|agst|against)\s*exp|\btds\b|\(sales\)|\(commission\)|\bexps?\b|remuneration|salary|imprest|petty\s*cash|\bgst\b|professional\s*tax/i;
+const isNT = name => { const o = local.overrides[pk(name)]; if (o) return o === 'nontrade'; return NT_RE.test(name); };
+
+function bills(snapIso, side){
+  const s = SNAPS[snapIso]; if (!s) return [];
+  const asOf = D(s.asOf);
+  return (s[side]||[]).map((r,i) => {
+    const [d, ref, party, amt, due] = r;
+    const base = state.basis === 'bill' ? D(d) : D(due || d);
+    const days = Math.round((asOf - base)/DAY);
+    const p = clean(party);
+    return {side, i, date:d, ref:String(ref||''), party:p, pk:pk(p), amt:+amt||0, due:due||d, days,
+            dueIn: Math.round((D(due||d) - asOf)/DAY), b:bIdx(days), nt:isNT(p),
+            key: side+'|'+pk(p)+'|'+String(ref||'')+'|'+d};
+  }).filter(b => state.trade === 'all' || !b.nt);
+}
+function agg(list){
+  const A = {total:0, count:list.length, bk:[0,0,0,0,0,0,0], bn:[0,0,0,0,0,0,0], over60:0, overdue:0, notdue:0, parties:new Map()};
+  for (const b of list){
+    A.total += b.amt; A.bk[b.b] += b.amt; A.bn[b.b]++;
+    if (b.b >= 3) A.over60 += b.amt;
+    if (b.dueIn < 0) A.overdue += b.amt; else A.notdue += b.amt;
+    let p = A.parties.get(b.pk);
+    if (!p){ p = {pk:b.pk, name:b.party, total:0, bk:[0,0,0,0,0,0,0], over60:0, overdue:0, bills:[], oldest:-1e9, nt:b.nt}; A.parties.set(b.pk, p); }
+    p.total += b.amt; p.bk[b.b] += b.amt; if (b.b >= 3) p.over60 += b.amt; if (b.dueIn < 0) p.overdue += b.amt;
+    p.bills.push(b); if (b.days > p.oldest) p.oldest = b.days;
+  }
+  A.plist = [...A.parties.values()].sort((a,b) => b.total - a.total);
+  return A;
+}
+const isGhost = p => p.bk[6] > 0 && (p.bk[0] + p.bk[1]) === 0;
+
+let CTX = null;
+function buildCtx(){
+  const s = state.snap; if (!s) { CTX = null; return; }
+  const c = state.cmp && state.cmp !== 'none' && SNAPS[state.cmp] ? state.cmp : null;
+  const ar = bills(s,'ar'), ap = bills(s,'ap');
+  CTX = { s, c, snap:SNAPS[s], ar, ap, A:{ar:agg(ar), ap:agg(ap)} };
+  if (c){ CTX.par = bills(c,'ar'); CTX.pap = bills(c,'ap'); CTX.P = {ar:agg(CTX.par), ap:agg(CTX.pap)}; }
+}
+
+/* ───────── Charts ───────── */
+const CH = {};
+function chart(id, cfg){
+  if (CH[id]) { CH[id].destroy(); delete CH[id]; }
+  const el = document.getElementById(id); if (!el || !window.Chart) return null;
+  CH[id] = new Chart(el, cfg); return CH[id];
+}
+function chartBase(){
+  if (!window.Chart) return;
+  Chart.defaults.font.family = "'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = css('--ink2');
+  Chart.defaults.borderColor = css('--grid');
+}
+const tipStyle = () => ({backgroundColor: css('--surface'), titleColor: css('--ink'), bodyColor: css('--ink2'), borderColor: css('--border2'), borderWidth: 1, padding: 10, cornerRadius: 8, titleFont:{weight:'700'}, boxPadding: 4});
+function axisL(horizontal){
+  const money = {grid:{color:css('--grid')}, border:{display:false}, ticks:{callback:v => '₹' + v + 'L', font:{size:10}}};
+  const cat = {grid:{display:false}, border:{color:css('--border2')}, ticks:{font:{size:10.5}, autoSkip:false}};
+  return horizontal ? {x:money, y:cat} : {x:cat, y:money};
+}
+function barDs(label, data, color, extra){ return Object.assign({label, data, backgroundColor:color, borderColor:css('--surface'), borderWidth:{top:0,bottom:0,left:0,right:0}, borderRadius:4, borderSkipped:'start', maxBarThickness:34, categoryPercentage:.72, barPercentage:.86}, extra||{}); }
+
+/* ───────── Rendering helpers ───────── */
+function delta(cur, prev, goodDown, fmt){
+  if (prev == null) return '';
+  const d = cur - prev; const f = fmt || short;
+  if (Math.abs(d) < 0.5) return `<span class="dl flat">● no change</span>`;
+  const good = goodDown ? d < 0 : d > 0;
+  return `<span class="dl ${good?'good':'bad'}">${d<0?'▼':'▲'} ${f(Math.abs(d))} vs ${fmtDs(CTX.c)}</span>`;
+}
+function card({lbl, val, sb, cls, dl, click}){
+  return `<div class="card ${cls||''} ${click?'click':''}" ${click?`data-go="${click}"`:''}><div class="lbl">${lbl}</div><div class="val">${val}</div>${sb?`<div class="sb">${sb}</div>`:''}${dl||''}</div>`;
+}
+function bkBadge(i){ return `<span class="badge bk${i}">${BK()[i]}</span>`; }
+function miniBar(bk, total){
+  const cols = bColors(); if (!total) return '';
+  return `<div class="bar-mini" title="${bk.map((v,i)=>BK()[i]+': '+short(v)).join(' · ')}">${bk.map((v,i)=> v>0?`<span style="width:${(v/total*100).toFixed(2)}%;background:${cols[i]}"></span>`:'').join('')}</div>`;
+}
+function sortable(tableId, cols, rows, rowFn, defSort, foot){
+  const st = state.sorts[tableId] || (state.sorts[tableId] = {k:defSort[0], dir:defSort[1]});
+  const col = cols.find(c => c.k === st.k) || cols[0];
+  const sorted = [...rows].sort((a,b) => { const va = col.v ? col.v(a) : a[col.k], vb = col.v ? col.v(b) : b[col.k];
+    return (typeof va === 'string' ? va.localeCompare(vb) : (va - vb)) * st.dir; });
+  const head = cols.map(c => `<th class="${c.r?'r ':''}${c.ns?'':'sort'}" ${c.ns?'':`data-sk="${c.k}" data-tid="${tableId}"`}>${c.h}${!c.ns && st.k===c.k ? `<span class="ar">${st.dir>0?'▲':'▼'}</span>`:''}</th>`).join('');
+  return `<table id="${tableId}"><thead${cols.ghost?' class="ghost"':''}><tr>${head}</tr></thead><tbody>${sorted.map(rowFn).join('') || `<tr><td colspan="${cols.length}" class="empty">Nothing to show.</td></tr>`}</tbody>${foot?`<tfoot>${foot}</tfoot>`:''}</table>`;
+}
+document.addEventListener('click', e => {
+  const th = e.target.closest('th[data-sk]');
+  if (th){ const st = state.sorts[th.dataset.tid]; if (st.k === th.dataset.sk) st.dir *= -1; else { st.k = th.dataset.sk; st.dir = -1; } renderView(); return; }
+  const pr = e.target.closest('[data-party]');
+  if (pr && !e.target.closest('th')){ openParty(pr.dataset.party); return; }
+  const go = e.target.closest('[data-go]');
+  if (go){ const [v, side, bucket] = go.dataset.go.split(':'); if (v === 'register'){ state.reg.side = side||'all'; state.reg.bucket = bucket||'all'; } setView(v); }
+});
+
+/* notes */
+function noteFor(side, p){
+  const n = [];
+  const other = CTX.A[side==='ar'?'ap':'ar'].parties.get(p.pk);
+  const pp = CTX.P ? CTX.P[side].parties.get(p.pk) : null;
+  if (side === 'ar'){
+    if (isGhost(p)) n.push('🚨 No recent billing, balance stuck in 151+ — recovery or write-off call');
+    else if (p.bk[6] > 0) n.push(short(p.bk[6]) + ' already past 150 days — escalate');
+    if (p.bk[3] > 0) n.push(short(p.bk[3]) + ' in 61–90 — collect before it crosses 90 days');
+    if (p.bk[4] + p.bk[5] > 0 && !isGhost(p)) n.push(short(p.bk[4]+p.bk[5]) + ' in 91–150 — urgent call');
+  } else {
+    if (/\btds\b/i.test(p.name)) n.push('Statutory — verify challan / clear ledger');
+    else if (p.bk[6] > 0) n.push(short(p.bk[6]) + ' unpaid 150+ days — confirm if still payable or disputed');
+    else if (p.over60 > 0) n.push('Overdue 60+ — schedule in next payment run');
+    if (p.bills.some(b => /^CN/i.test(b.ref))) n.push('Includes credit notes — adjust against receivable');
+  }
+  if (p.total < 1000 && p.oldest > 90) n.push('Small stale balance — clean-up / write-off candidate');
+  if (CTX.P){
+    if (!pp || pp.over60 < 0.5){ if (p.over60 > 0) n.push('⚠ NEW in 60+ since ' + fmtDs(CTX.c)); }
+    else { const d = p.over60 - pp.over60;
+      if (d > 0.5) n.push('Worsened ▲' + short(d) + ' since ' + fmtDs(CTX.c));
+      else if (d < -0.5) n.push('Reducing ▼' + short(-d) + ' — keep pressure');
+      else n.push('Zero movement since ' + fmtDs(CTX.c)); }
+  }
+  if (other) n.push(`Also on ${side==='ar'?'payables':'receivables'} ${short(other.total)} — net-off possible`);
+  if (p.nt) n.push('Non-trade ledger');
+  return n.join(' · ');
+}
+
+/* ───────── Views ───────── */
+const TITLES = {
+  overview:['Overview','Receivables vs payables at a glance'],
+  movement:['Daily Movement','What changed since the comparison date — collections, payments, new bills, slippage'],
+  ar:['Receivables Ageing Brief','Sundry debtors, bill-wise from Tally — Bills Receivable'],
+  priority:['Collection Priority','Accounts 60+ days overdue, ranked — for the sales & collections team'],
+  ap:['Payables Ageing Brief','Sundry creditors, bill-wise from Tally — Bills Payable'],
+  cash:['Cash Flow Outlook','Expected inflows (AR) vs outflows (AP) by due week'],
+  parties:['Party Explorer','Every party across both ledgers — click any row for full drill-down'],
+  register:['Bill Register','Every pending bill — filter, sort, export'],
+  quality:['Data Quality','Clean-up items that distort the ageing picture']
+};
+function setView(v){
+  state.view = v;
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-'+v));
+  renderView();
+  window.scrollTo({top:0, behavior:'smooth'});
+  try { history.replaceState(null, '', '#'+v); } catch(e){}
+}
+function renderAll(){
+  initDates(); buildCtx(); chartBase(); fillSelectors();
+  renderView();
+}
+function renderView(){
+  const [t, s] = TITLES[state.view];
+  $('#pgTitle').textContent = t;
+  if (!CTX){ $('#pgSub').textContent = 'No data loaded yet — click “Load files”.'; $('#v-'+state.view).innerHTML = `<div class="note-box"><b>No data yet.</b> Load the Tally Bills Receivable &amp; Bills Payable exports to begin.</div>`; return; }
+  $('#pgSub').innerHTML = `${s} · As of <b>${fmtD(CTX.s)}</b>${CTX.c?` · vs ${fmtD(CTX.c)}`:''}${state.trade==='trade'?' · <b>Trade ledgers only</b>':''}${state.basis==='bill'?' · Aged on bill date':''}`;
+  ({overview:vOverview, movement:vMovement, ar:()=>vSide('ar'), ap:()=>vSide('ap'), priority:vPriority, cash:vCash, parties:vParties, register:vRegister, quality:vQuality})[state.view]();
+  updateCounts();
+}
+function updateCounts(){
+  const thr = state.thr;
+  $('#cntPri').textContent = CTX.A.ar.plist.filter(p => p.over60 >= thr).length;
+  $('#cntDq').textContent = dqItems().length;
+  const s = CTX.snap;
+  $('#sideFoot').innerHTML = `Report date <b>${fmtD(CTX.s)}</b><br>${esc(s.period||'')}<br>${dates().length} day${dates().length>1?'s':''} of history · loaded ${s.loadedAt ? new Date(s.loadedAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '—'}`;
+  $('#footR').innerHTML = `As of <b>${fmtD(CTX.s)}</b> · Internal use only`;
+}
+
+/* OVERVIEW */
+function vOverview(){
+  const {ar, ap} = CTX.A, P = CTX.P;
+  const due30 = side => CTX[side].filter(b => b.dueIn >= 0 && b.dueIn <= 30).reduce((s,b)=>s+b.amt,0);
+  const in30 = due30('ar'), out30 = due30('ap');
+  const ratio = ar.total ? ap.total/ar.total : 0;
+  const el = $('#v-overview');
+  el.innerHTML = `
+  ${!P ? `<div class="note-box"><b>Baseline snapshot.</b> ${dates().length<2?'This is the first report date on file — there is no prior day to compare against yet. Load tomorrow\'s exports and every view will show day-over-day movement (collections, payments, accounts newly overdue, movers) automatically.':'Pick a “Compare with” date to see movement.'}</div>`:''}
+  <div class="cards">
+    ${card({lbl:'Total Receivables', val:short(ar.total), sb:`${ar.count} bills · ${ar.parties.size} parties`, cls:'c-ar click', click:'ar', dl:delta(ar.total, P?.ar.total, true)})}
+    ${card({lbl:'Total Payables', val:short(ap.total), sb:`${ap.count} bills · ${ap.parties.size} parties`, cls:'c-ap click', click:'ap', dl:delta(ap.total, P?.ap.total, true)})}
+    ${card({lbl:'Net Position (AR − AP)', val:short(ar.total-ap.total), sb:`Payables are ${ratio.toFixed(1)}× receivables`, cls:ar.total-ap.total<0?'c-red':'c-green', dl:delta(ar.total-ap.total, P?(P.ar.total-P.ap.total):null, false)})}
+    ${card({lbl:'AR 60+ Days Overdue', val:short(ar.over60), sb:`${pct(ar.over60, ar.total)} of receivables · ${ar.plist.filter(p=>p.over60>0).length} parties`, cls:'c-red click', click:'priority', dl:delta(ar.over60, P?.ar.over60, true)})}
+    ${card({lbl:'AP Past Due', val:short(ap.overdue), sb:`${pct(ap.overdue, ap.total)} of payables already due`, cls:'c-gold click', click:'ap', dl:delta(ap.overdue, P?.ap.overdue, true)})}
+    ${card({lbl:'Next 30 Days (not yet due)', val:short(in30-out30), sb:`In ${short(in30)} · Out ${short(out30)}`, cls:in30-out30<0?'c-red click':'c-green click', click:'cash'})}
+  </div>
+  <div class="grid3">
+    <div class="panel"><h3>Ageing — Receivables vs Payables <span class="r">₹ lakhs · click a bar to open those bills</span></h3>
+      <div class="legend"><span><i style="background:${css('--ar')}"></i>Receivables</span><span><i style="background:${css('--ap')}"></i>Payables</span></div>
+      <div class="ch"><canvas id="cOvBk"></canvas></div></div>
+    <div class="panel"><h3>Key Insights</h3><div class="ins">${insights().map(i=>`<div class="ins-i"><span class="dot" style="background:${i.bg};color:${i.fg}">${i.ic}</span><div>${i.t}</div></div>`).join('')}</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Top 10 Debtors <span class="r">click to drill down</span></h3><div class="ch tall"><canvas id="cOvTopAr"></canvas></div></div>
+    <div class="panel"><h3>Top 10 Creditors <span class="r">click to drill down</span></h3><div class="ch tall"><canvas id="cOvTopAp"></canvas></div></div>
+  </div>
+  <div class="panel"><h3>Trend across report dates <span class="r">${dates().length} day${dates().length>1?'s':''} on file</span></h3>
+    ${dates().length < 2 ? `<div class="empty">The trend line starts once a second day's files are loaded.</div>` : `<div class="legend"><span><i style="background:${css('--ar')}"></i>Total receivables</span><span><i style="background:${css('--ap')}"></i>Total payables</span><span><i style="background:${css('--b5')}"></i>AR 60+ overdue</span></div><div class="ch"><canvas id="cOvTrend"></canvas></div>`}
+  </div>`;
+  const bk = BK();
+  chart('cOvBk', {type:'bar', data:{labels:bk, datasets:[barDs('Receivables', ar.bk.map(lakh), css('--ar')), barDs('Payables', ap.bk.map(lakh), css('--ap'))]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{label:c => `${c.dataset.label}: ${short(c.raw*1e5)} · ${(c.datasetIndex?ap:ar).bn[c.dataIndex]} bills`}}},
+      scales:axisL(false), onClick:(e,els) => { if (els[0]){ state.reg.side = els[0].datasetIndex ? 'ap':'ar'; state.reg.bucket = String(els[0].index); setView('register'); } }, onHover:hoverPtr}});
+  topChart('cOvTopAr', ar, 'ar'); topChart('cOvTopAp', ap, 'ap');
+  if (dates().length >= 2) trendChart();
+}
+function hoverPtr(e, els){ e.native.target.style.cursor = els.length ? 'pointer' : 'default'; }
+function topChart(id, A, side){
+  const top = A.plist.slice(0,10);
+  const col = side==='ar' ? css('--ar') : css('--ap');
+  chart(id, {type:'bar', data:{labels:top.map(p => p.name.length>28 ? p.name.slice(0,27)+'…' : p.name),
+    datasets:[barDs('Not yet 60+', top.map(p => lakh(p.total - p.over60)), col, {stack:'s'}), barDs('60+ overdue', top.map(p => lakh(p.over60)), css('--b5'), {stack:'s'})]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', align:'start', labels:{boxWidth:10, boxHeight:10, useBorderRadius:true, borderRadius:2, font:{size:11}}}, tooltip:{...tipStyle(), callbacks:{title:c => top[c[0].dataIndex].name, label:c => `${c.dataset.label}: ${short(c.raw*1e5)}`, footer:c => 'Total ' + inr(top[c[0].dataIndex].total) + ' · ' + pct(top[c[0].dataIndex].total, A.total) + ' of total'}}},
+      scales:Object.assign(axisL(true), {x:Object.assign(axisL(true).x, {stacked:true}), y:Object.assign(axisL(true).y, {stacked:true})}),
+      onClick:(e,els) => { if (els[0]) openParty(top[els[0].index].pk); }, onHover:hoverPtr}});
+}
+function trendChart(){
+  const ds = dates();
+  const pts = ds.map(d => { const a = agg(bills(d,'ar')), p = agg(bills(d,'ap')); return {d, ar:a.total, ap:p.total, o:a.over60}; });
+  const line = (label, key, color, dash) => ({label, data:pts.map(p => lakh(p[key])), borderColor:color, backgroundColor:color, borderWidth:2, pointRadius:4, pointHoverRadius:6, pointBorderColor:css('--surface'), pointBorderWidth:2, tension:.25, borderDash:dash||[]});
+  chart('cOvTrend', {type:'line', data:{labels:ds.map(fmtDs), datasets:[line('Total receivables','ar',css('--ar')), line('Total payables','ap',css('--ap')), line('AR 60+ overdue','o',css('--b5'),[5,4])]},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false}, plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{label:c => `${c.dataset.label}: ${short(c.raw*1e5)}`}}}, scales:axisL(false),
+      onClick:(e,els) => { if (els[0]){ state.snap = ds[els[0].index]; state.cmp = null; renderAll(); } }, onHover:hoverPtr}});
+}
+function insights(){
+  const {ar, ap} = CTX.A, out = [];
+  const T = (ic, bg, fg, t) => out.push({ic, bg:css(bg), fg:css(fg), t});
+  if (ar.total && ap.total) T('⚖','--red-lt','--red', `Payables are <b>${(ap.total/ar.total).toFixed(1)}×</b> receivables — ${short(ap.total)} owed vs ${short(ar.total)} to collect.`);
+  const t3 = ar.plist.slice(0,3), t3s = t3.reduce((s,p)=>s+p.total,0);
+  if (t3.length) T('◔','--teal-lt','--teal', `Top 3 debtors hold <b>${pct(t3s, ar.total)}</b> of receivables: ${t3.map(p=>`<a data-party="${esc(p.pk)}" style="cursor:pointer;text-decoration:underline">${esc(p.name)}</a>`).join(', ')}.`);
+  const v1 = ap.plist[0];
+  if (v1){ const d30 = v1.bills.filter(b => b.dueIn >= 0 && b.dueIn <= 30).reduce((s,b)=>s+b.amt,0);
+    T('▲','--gold-lt','--gold', `<b>${esc(v1.name)}</b> is ${pct(v1.total, ap.total)} of payables (${short(v1.total)}); ${short(d30)} falls due in the next 30 days.`); }
+  T('●','--red-lt','--red', `<b>${short(ar.over60)}</b> (${pct(ar.over60, ar.total)}) of receivables is 60+ days overdue across ${ar.plist.filter(p=>p.over60>0).length} parties.`);
+  const both = ar.plist.filter(p => ap.parties.has(p.pk));
+  if (both.length) T('⇄','--amber-lt','--amber', `<b>${both.length} parties</b> appear on both sides (${both.slice(0,3).map(p=>esc(p.name)).join(', ')}${both.length>3?'…':''}) — reconcile and net off.`);
+  const gh = ar.plist.filter(isGhost);
+  if (gh.length) T('🚨','--maroon-lt','--maroon', `<b>${gh.length} ghost accounts</b> — no recent billing, ${short(gh.reduce((s,p)=>s+p.bk[6],0))} stuck in 151+. Needs a recover-or-write-off decision.`);
+  if (CTX.P){ const m = movement('ar'), n = movement('ap');
+    T('✓','--green-lt','--green', `Since ${fmtDs(CTX.c)}: collected <b>${short(m.reduced)}</b> from customers, paid <b>${short(n.reduced)}</b> to vendors; ${short(m.added)} newly billed.`); }
+  return out;
+}
+
+/* SIDE VIEW (AR / AP brief) */
+function vSide(side){
+  const A = CTX.A[side], P = CTX.P?.[side], isAR = side === 'ar';
+  const largest = A.plist[0];
+  const over60 = A.plist.filter(p => p.over60 > 0).sort((a,b) => b.oldest - a.oldest);
+  const ghosts = A.plist.filter(p => p.bk[6] > 0).sort((a,b) => b.oldest - a.oldest);
+  const word = isAR ? 'Receivables' : 'Payables';
+  const el = $('#v-'+side);
+  el.innerHTML = `
+  <div class="cards">
+    ${card({lbl:'Total '+word, val:short(A.total), sb:`${A.count} bills · ${A.parties.size} parties`, cls:isAR?'c-ar':'c-ap', dl:delta(A.total, P?.total, true)})}
+    ${card({lbl:'60+ Days Overdue', val:short(A.over60), sb:`${pct(A.over60, A.total)} of total · ${over60.length} parties`, cls:'c-red click', click:`register:${side}:60`, dl:delta(A.over60, P?.over60, true)})}
+    ${card({lbl:isAR?'Not Yet Due':'Not Yet Due', val:short(A.notdue), sb:`${pct(A.notdue, A.total)} of total · within credit terms`, cls:'c-green'})}
+    ${card({lbl:'151+ Days', val:short(A.bk[6]), sb:`${A.bn[6]} bills · ${ghosts.length} parties`, cls:'c-maroon click', click:`register:${side}:6`, dl:delta(A.bk[6], P?.bk[6], true)})}
+    ${largest ? card({lbl:'Largest Single Party', val:short(largest.total), sb:`${esc(largest.name)} — ${pct(largest.total, A.total)} of total`, cls:'c-gold'}) : ''}
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Ageing Bucket Distribution <span class="r">₹ lakhs · click a bar</span></h3>
+      ${P?`<div class="legend"><span><i style="background:${css('--ink3')};opacity:.45"></i>${fmtDs(CTX.c)}</span><span><i style="background:${isAR?css('--ar'):css('--ap')}"></i>${fmtDs(CTX.s)} (coloured by age)</span></div>`:''}
+      <div class="ch"><canvas id="cSBk${side}"></canvas></div></div>
+    <div class="panel"><h3>Bills raised by month vs still pending <span class="r">₹ lakhs</span></h3><div class="hint">Pending balance grouped by bill month — older months still open signal collection drag.</div><div class="ch"><canvas id="cSMo${side}"></canvas></div></div>
+  </div>
+  <div class="panel"><h3>Top 10 ${isAR?'Accounts':'Vendors'} by Outstanding <span class="r">₹ lakhs · red = 60+ portion</span></h3><div class="ch tall"><canvas id="cSTop${side}"></canvas></div></div>
+
+  <div class="sec-title"><span>🔴</span> ${isAR?'Accounts 60+ Days Overdue — Collection Priority':'Vendors 60+ Days Overdue — Payment Priority'}<span class="r">${over60.length} parties · ${short(A.over60)}</span></div>
+  <div class="tbl-wrap">${sortable('t60'+side, [
+      {k:'name',h:isAR?'Account':'Vendor'},{k:'over60',h:'60+ Balance',r:1},{k:'total',h:'Total Balance',r:1},{k:'oldest',h:'Oldest (days)',r:1},{k:'b',h:'Bucket',v:p=>bIdx(p.oldest)},{k:'mix',h:'Ageing mix',ns:1},{k:'note',h:'Notes',ns:1}],
+      over60, p => `<tr class="clk ${isGhost(p)?'row-ghost':(p.bk[3]>0?'row-warn':'')}" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}${p.nt?'<span class="tag">non-trade</span>':''}</td><td class="amt" style="color:var(--red)">${inr(p.over60)}</td><td class="amt">${inr(p.total)}</td><td class="amt">${p.oldest}</td><td>${bkBadge(bIdx(p.oldest))}</td><td>${miniBar(p.bk, p.total)}</td><td class="note">${esc(noteFor(side,p))}</td></tr>`,
+      ['oldest',-1], `<tr><td>Total</td><td class="amt">${inr(A.over60)}</td><td class="amt">${inr(over60.reduce((s,p)=>s+p.total,0))}</td><td colspan="4"></td></tr>`)}</div>
+
+  <div class="sec-title ghost"><span>🚨</span> 151+ Day ${isAR?'Accounts — Recovery / Write-off Decision':'Balances — Confirm, Pay or Reverse'}<span class="r">${ghosts.length} parties · ${short(A.bk[6])}</span></div>
+  <p class="lead">${isAR?'Every party holding a balance past 150 days, oldest first. Rows shaded maroon are ghost accounts — nothing billed in the last 30 days — where a one-time management call on recover vs. write off beats routine follow-up.':'Vendor balances unpaid for 150+ days are usually disputes, unadjusted advances/credit notes, or ledgers that need a clean-up entry rather than payment.'}</p>
+  <div class="tbl-wrap">${sortable('t151'+side, Object.assign([
+      {k:'name',h:isAR?'Account':'Vendor'},{k:'total',h:'Total Balance',r:1},{k:'b6',h:'Amount 151+',r:1,v:p=>p.bk[6]},{k:'oldest',h:'Oldest (days)',r:1},{k:'rec',h:'Recommendation',ns:1}],{ghost:1}),
+      ghosts, p => `<tr class="clk ${isGhost(p)?'row-ghost':''}" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}</td><td class="amt">${inr(p.total)}</td><td class="amt" style="color:var(--maroon)">${inr(p.bk[6])}</td><td class="amt" style="color:var(--maroon)">${p.oldest}</td><td class="note">${isAR ? (p.bk[6] < 1000 ? 'Tiny stale amount — write off / clean up' : isGhost(p) ? 'Ghost — no recent orders; initiate recovery or legal notice' : 'Active customer — recover old dues before next dispatch') : (/\btds\b/i.test(p.name) ? 'Statutory ledger — reconcile with challans' : p.bills.some(b=>/^CN/i.test(b.ref)) ? 'Credit note / advance — adjust against receivable' : 'Confirm with vendor — pay, dispute or reverse')}</td></tr>`,
+      ['oldest',-1])}</div>`;
+
+  // bucket chart
+  const cols = bColors(), bk = BK();
+  const dsets = [];
+  if (P) dsets.push(barDs(fmtDs(CTX.c), P.bk.map(lakh), css('--ink3') + '66'));
+  dsets.push(barDs(fmtDs(CTX.s), A.bk.map(lakh), cols));
+  chart('cSBk'+side, {type:'bar', data:{labels:bk, datasets:dsets}, options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{label:c => `${c.dataset.label}: ${short(c.raw*1e5)}`, afterLabel:c => c.datasetIndex === dsets.length-1 ? `${A.bn[c.dataIndex]} bills · ${pct(A.bk[c.dataIndex], A.total)}` : ''}}},
+    scales:axisL(false), onClick:(e,els)=>{ if(els[0]){ state.reg.side = side; state.reg.bucket = String(els[0].index); setView('register'); } }, onHover:hoverPtr}});
+  // by month
+  const months = {}; for (const b of CTX[side]){ const m = b.date.slice(0,7); (months[m] = months[m] || {amt:0, od:0}); months[m].amt += b.amt; if (b.b >= 3) months[m].od += b.amt; }
+  const mk = Object.keys(months).sort();
+  chart('cSMo'+side, {type:'bar', data:{labels:mk.map(m => MON[+m.slice(5)-1] + ' ' + m.slice(2,4)), datasets:[
+      barDs('Within 60 days', mk.map(m => lakh(months[m].amt - months[m].od)), isAR?css('--ar'):css('--ap'), {stack:'m'}),
+      barDs('60+ overdue', mk.map(m => lakh(months[m].od)), css('--b5'), {stack:'m'})]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top', align:'start', labels:{boxWidth:10, boxHeight:10, font:{size:11}}}, tooltip:{...tipStyle(), callbacks:{label:c => `${c.dataset.label}: ${short(c.raw*1e5)}`}}},
+      scales:Object.assign(axisL(false), {x:Object.assign(axisL(false).x,{stacked:true}), y:Object.assign(axisL(false).y,{stacked:true})})}});
+  topChart('cSTop'+side, A, side);
+}
+
+/* MOVEMENT (diff engine) */
+function movement(side){
+  const cur = CTX[side], prev = side==='ar' ? CTX.par : CTX.pap;
+  const cm = new Map(cur.map(b => [b.key, b])), pm = new Map(prev.map(b => [b.key, b]));
+  const cleared = [], partial = [], added = [], increased = [];
+  let reduced = 0, add = 0;
+  for (const [k, b] of pm){ const c = cm.get(k);
+    if (!c){ cleared.push(b); reduced += b.amt; }
+    else if (c.amt < b.amt - 0.5){ partial.push({b:c, prev:b.amt}); reduced += b.amt - c.amt; }
+    else if (c.amt > b.amt + 0.5){ increased.push({b:c, prev:b.amt}); add += c.amt - b.amt; } }
+  for (const [k, b] of cm) if (!pm.has(k)){ added.push(b); add += b.amt; }
+  // per party: collected & 60+ change & slipped
+  const A = CTX.A[side], P = CTX.P[side];
+  const keys = new Set([...A.parties.keys(), ...P.parties.keys()]);
+  const parties = [];
+  for (const k of keys){
+    const a = A.parties.get(k), p = P.parties.get(k);
+    const name = (a||p).name;
+    const coll = cleared.filter(b=>b.pk===k).reduce((s,b)=>s+b.amt,0) + partial.filter(x=>x.b.pk===k).reduce((s,x)=>s+x.prev-x.b.amt,0);
+    const clearedBills = cleared.filter(b=>b.pk===k).length;
+    // slipped = bills now 60+ that were < 61 days in prev snapshot
+    const slipped = (a?a.bills:[]).filter(b => b.b >= 3 && (() => { const pb = pm.get(b.key); return pb && pb.b < 3; })()).reduce((s,b)=>s+b.amt,0)
+                  + (a?a.bills:[]).filter(b => b.b >= 3 && !pm.has(b.key)).reduce((s,b)=>s+b.amt,0);
+    parties.push({pk:k, name, cur:a?a.total:0, prev:p?p.total:0, o60:a?a.over60:0, p60:p?p.over60:0, d60:(a?a.over60:0)-(p?p.over60:0), coll, clearedBills, slipped, closed:!a && !!p, isNew:!!a && !p, bkNow:a?a.bk:null});
+  }
+  return {cleared, partial, increased, reduced, added:add, addedBills:added, parties};
+}
+function vMovement(){
+  const el = $('#v-movement');
+  if (!CTX.P){ el.innerHTML = `<div class="note-box"><b>Baseline snapshot.</b> ${dates().length<2 ? 'Only one report date is on file. Load the next day\'s AR &amp; AP exports with “Load files” and this page fills in automatically: amount collected and paid, bills cleared, new bills, accounts newly slipped into 60+, and the improved / deteriorated movers — the same structure as the GLPL brief.' : 'Choose a date in “Compare with” to see movement.'}</div>`; return; }
+  const m = {ar:movement('ar'), ap:movement('ap')};
+  const A = CTX.A, P = CTX.P;
+  const newIn60 = m.ar.parties.filter(p => p.p60 < 0.5 && p.o60 > 0).length;
+  el.innerHTML = `
+  <div class="cards">
+    ${card({lbl:'Collected from customers', val:short(m.ar.reduced), sb:`${m.ar.cleared.length} bills fully cleared · ${m.ar.partial.length} part-paid`, cls:'c-green'})}
+    ${card({lbl:'Newly billed (AR)', val:short(m.ar.added), sb:`${m.ar.addedBills.length} new bill${m.ar.addedBills.length===1?'':'s'}`, cls:'c-ar'})}
+    ${card({lbl:'AR 60+ Overdue', val:short(A.ar.over60), sb:`Was ${short(P.ar.over60)} on ${fmtDs(CTX.c)}`, cls:'c-red', dl:delta(A.ar.over60, P.ar.over60, true)})}
+    ${card({lbl:'Parties in AR 60+', val:A.ar.plist.filter(p=>p.over60>0).length, sb:`Was ${P.ar.plist.filter(p=>p.over60>0).length} · ${newIn60} new entr${newIn60===1?'y':'ies'}`, cls:'c-gold'})}
+    ${card({lbl:'Paid to vendors', val:short(m.ap.reduced), sb:`${m.ap.cleared.length} bills cleared · ${m.ap.partial.length} part-paid`, cls:'c-ap'})}
+    ${card({lbl:'New vendor bills', val:short(m.ap.added), sb:`${m.ap.addedBills.length} bill${m.ap.addedBills.length===1?'':'s'} booked`, cls:'c-ap'})}
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Receivables ageing — ${fmtDs(CTX.c)} vs ${fmtDs(CTX.s)} <span class="r">₹ lakhs</span></h3><div class="legend"><span><i style="background:${css('--ink3')};opacity:.5"></i>${fmtDs(CTX.c)}</span><span><i style="background:${css('--ar')}"></i>${fmtDs(CTX.s)}</span></div><div class="ch"><canvas id="cMvAr"></canvas></div></div>
+    <div class="panel"><h3>Payables ageing — ${fmtDs(CTX.c)} vs ${fmtDs(CTX.s)} <span class="r">₹ lakhs</span></h3><div class="legend"><span><i style="background:${css('--ink3')};opacity:.5"></i>${fmtDs(CTX.c)}</span><span><i style="background:${css('--ap')}"></i>${fmtDs(CTX.s)}</span></div><div class="ch"><canvas id="cMvAp"></canvas></div></div>
+  </div>
+  <div class="movers">
+    ${moverBox('good', `✅ Improved since ${fmtDs(CTX.c)} (AR 60+ reduced)`, m.ar.parties.filter(p=>p.d60 < -0.5).sort((a,b)=>a.d60-b.d60), p=>'−'+short(-p.d60))}
+    ${moverBox('bad', `⚠️ Deteriorated since ${fmtDs(CTX.c)} (AR 60+ increased)`, m.ar.parties.filter(p=>p.d60 > 0.5).sort((a,b)=>b.d60-a.d60), p=>'+'+short(p.d60))}
+  </div>
+  <div class="sec-title"><span>✅</span> Key Wins — Accounts Cleared / Payments Received</div>
+  <div class="tbl-wrap">${sortable('tWins', [{k:'name',h:'Account'},{k:'coll',h:'Received',r:1},{k:'cur',h:'Balance now',r:1},{k:'clearedBills',h:'Bills cleared',r:1},{k:'st',h:'Status',ns:1}],
+    m.ar.parties.filter(p=>p.coll>0.5), p=>`<tr class="clk ${p.closed?'row-ok':''}" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}</td><td class="amt" style="color:var(--green)">${inr(p.coll)}</td><td class="amt">${inr(p.cur)}</td><td class="amt">${p.clearedBills}</td><td class="note">${p.closed?'Fully paid — account closed':p.o60<0.5?'Now nothing in 60+ — all current':p.d60<-0.5?'60+ reducing — '+short(p.o60)+' still overdue':'Partial — '+short(p.o60)+' still in 60+'}</td></tr>`, ['coll',-1],
+    `<tr><td>Total</td><td class="amt">${inr(m.ar.reduced)}</td><td colspan="3"></td></tr>`)}</div>
+  <div class="sec-title"><span>⚠️</span> Newly Slipped into 60+ Since ${fmtDs(CTX.c)} — Act Before Next Cycle</div>
+  <div class="tbl-wrap">${sortable('tSlip', [{k:'name',h:'Account'},{k:'slipped',h:'Newly overdue 60+',r:1},{k:'o60',h:'Total 60+ now',r:1},{k:'bk',h:'Bucket',ns:1},{k:'act',h:'Action required',ns:1}],
+    m.ar.parties.filter(p=>p.slipped>0.5), p=>`<tr class="clk ${p.p60>0.5?'row-warn':''}" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}</td><td class="amt" style="color:var(--amber)">${inr(p.slipped)}</td><td class="amt" style="color:var(--red)">${inr(p.o60)}</td><td>${p.bkNow?[3,4,5,6].filter(i=>p.bkNow[i]>0).map(bkBadge).join(' '):''}</td><td class="note">${p.p60>0.5?'Added on top of existing 60+ — escalate':p.slipped>=50000?'Immediate call — high amount':'Follow-up call this week before it ages further'}</td></tr>`, ['slipped',-1])}</div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="panel"><h3>New customer bills since ${fmtDs(CTX.c)} <span class="r">${m.ar.addedBills.length} · ${short(m.ar.added)}</span></h3>${billList(m.ar.addedBills)}</div>
+    <div class="panel"><h3>Vendor bills paid / cleared <span class="r">${m.ap.cleared.length} · ${short(m.ap.cleared.reduce((s,b)=>s+b.amt,0))}</span></h3>${billList(m.ap.cleared)}</div>
+  </div>`;
+  const cmp = (id, side) => chart(id, {type:'bar', data:{labels:BK(), datasets:[barDs(fmtDs(CTX.c), P[side].bk.map(lakh), css('--ink3')+'80'), barDs(fmtDs(CTX.s), A[side].bk.map(lakh), side==='ar'?css('--ar'):css('--ap'))]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{label:c=>`${c.dataset.label}: ${short(c.raw*1e5)}`}}}, scales:axisL(false)}});
+  cmp('cMvAr','ar'); cmp('cMvAp','ap');
+}
+function moverBox(kind, title, rows, fmt){
+  return `<div class="mbox ${kind}"><h4>${title}</h4>${rows.slice(0,10).map(p=>`<div class="mrow" data-party="${esc(p.pk)}"><span class="mn">${esc(p.name)}</span><span class="mv">${fmt(p)}</span></div>`).join('') || '<div class="empty">None.</div>'}${rows.length>10?`<div class="empty">+${rows.length-10} more</div>`:''}</div>`;
+}
+function billList(list){
+  if (!list.length) return '<div class="empty">None.</div>';
+  const s = [...list].sort((a,b)=>b.amt-a.amt).slice(0,12);
+  return `<div class="tbl-wrap" style="max-height:330px"><table><thead><tr><th>Party</th><th>Ref</th><th class="r">Amount</th></tr></thead><tbody>${s.map(b=>`<tr class="clk" data-party="${esc(b.pk)}"><td class="name">${esc(b.party)}</td><td class="mut">${esc(b.ref)}</td><td class="amt">${inr(b.amt)}</td></tr>`).join('')}</tbody></table></div>${list.length>12?`<div class="empty">+${list.length-12} more in the Bill Register</div>`:''}`;
+}
+
+/* PRIORITY (GLPL-style) */
+function vPriority(){
+  const side = state.prSide, A = CTX.A[side], P = CTX.P?.[side];
+  const rows = A.plist.filter(p => p.over60 >= state.thr).map(p => Object.assign(p, {prev60: P ? (P.parties.get(p.pk)?.over60 || 0) : null}));
+  const all60 = A.plist.filter(p => p.over60 > 0);
+  const ghosts = A.plist.filter(isGhost);
+  const el = $('#v-priority');
+  el.innerHTML = `
+  <div class="frow">
+    <div class="ctl"><label>Ledger</label><div class="seg" id="prSide"><button data-s="ar" class="${side==='ar'?'on':''}">Receivables</button><button data-s="ap" class="${side==='ap'?'on':''}">Payables</button></div></div>
+    <div class="ctl"><label for="prThr">60+ threshold (₹)</label><select id="prThr" class="sel">${[0,10000,25000,50000,100000,200000].map(v=>`<option value="${v}" ${v===state.thr?'selected':''}>${v?'≥ '+inr(v):'All'}</option>`).join('')}</select></div>
+  </div>
+  <div class="cards">
+    ${card({lbl:'60+ Days Overdue', val:short(A.over60), sb:P?`Was ${short(P.over60)} on ${fmtDs(CTX.c)}`:`${pct(A.over60, A.total)} of total`, cls:'c-red', dl:delta(A.over60, P?.over60, true)})}
+    ${card({lbl:'Parties in 60+', val:all60.length, sb:`${rows.length} at or above threshold`, cls:'c-gold', dl:P?delta(all60.length, P.plist.filter(p=>p.over60>0).length, true, v=>v):''})}
+    ${card({lbl:'91+ Days', val:short(A.bk[4]+A.bk[5]+A.bk[6]), sb:`${pct(A.bk[4]+A.bk[5]+A.bk[6], A.total)} of total`, cls:'c-red'})}
+    ${card({lbl:'Ghost accounts', val:ghosts.length, sb:`${short(ghosts.reduce((s,p)=>s+p.bk[6],0))} in 151+, no recent bills`, cls:'c-maroon'})}
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>60+ Overdue Bucket Split ${P?`— ${fmtDs(CTX.s)} vs ${fmtDs(CTX.c)}`:''} <span class="r">₹ lakhs</span></h3><div class="ch"><canvas id="cPrBk"></canvas></div></div>
+    <div class="panel"><h3>Top 10 — 60+ Days Overdue <span class="r">₹ lakhs${P?' · green better · red worse · amber same':''}</span></h3><div class="ch"><canvas id="cPrTop"></canvas></div></div>
+  </div>
+  <div class="sec-title"><span>🔴</span> Critical — 60+ Days Overdue ${state.thr?'≥ '+inr(state.thr):''} — Priority ${side==='ar'?'Collection':'Payment'}<span class="r">${rows.length} parties</span></div>
+  <div class="tbl-wrap">${sortable('tPri'+side, [
+      {k:'name',h:'Account'},{k:'over60',h:`60+ ${fmtDs(CTX.s)}`,r:1},...(P?[{k:'prev60',h:`60+ ${fmtDs(CTX.c)}`,r:1}]:[]),
+      {k:'b3',h:'61–90d',r:1,v:p=>p.bk[3]},{k:'b4',h:'91–120d',r:1,v:p=>p.bk[4]},{k:'b5',h:'121–150d',r:1,v:p=>p.bk[5]},{k:'b6',h:'151+d',r:1,v:p=>p.bk[6]},{k:'note',h:'Action / Note',ns:1}],
+      rows, p => { const worse = P && p.over60 > p.prev60 + 0.5;
+        return `<tr class="clk ${isGhost(p)?'row-ghost':worse?'row-warn':p.bk[4]+p.bk[5]>0?'row-crit':''}" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}${worse?' ⚠':''}</td><td class="amt" style="color:${isGhost(p)?'var(--maroon)':'var(--red)'}">${short(p.over60)}</td>${P?`<td class="amt">${p.prev60?short(p.prev60):'—'}</td>`:''}${[3,4,5,6].map(i=>`<td class="amt">${p.bk[i]?short(p.bk[i]):'<span class="mut">—</span>'}</td>`).join('')}<td class="note">${esc(noteFor(side,p))}</td></tr>`; },
+      ['over60',-1], `<tr><td>Total (${rows.length})</td><td class="amt">${short(rows.reduce((s,p)=>s+p.over60,0))}</td>${P?`<td class="amt">${short(rows.reduce((s,p)=>s+(p.prev60||0),0))}</td>`:''}${[3,4,5,6].map(i=>`<td class="amt">${short(rows.reduce((s,p)=>s+p.bk[i],0))}</td>`).join('')}<td></td></tr>`)}</div>
+  <div class="sec-title ghost"><span>🚨</span> Ghost Accounts — 151+ Days, No Recent ${side==='ar'?'Orders':'Bills'} (Bad Debt / Recovery)</div>
+  <p class="lead">Nothing billed in the last 30 days (no balance in ${BK()[0]} or 1–30) with money stuck past 150 days. Management decision required: formal recovery action or write-off.</p>
+  <div class="tbl-wrap">${sortable('tGh'+side, Object.assign([{k:'name',h:'Account'},{k:'total',h:'Total Balance',r:1},{k:'b6',h:'Amount in 151+d',r:1,v:p=>p.bk[6]},{k:'oldest',h:'Oldest (days)',r:1},{k:'rec',h:'Recommendation',ns:1}],{ghost:1}),
+      ghosts, p => `<tr class="clk row-ghost" data-party="${esc(p.pk)}"><td class="name">${esc(p.name)}</td><td class="amt" style="color:var(--maroon)">${inr(p.total)}</td><td class="amt" style="color:var(--maroon)">${inr(p.bk[6])}</td><td class="amt">${p.oldest}</td><td class="note">${p.bk[6] >= 100000 ? 'Entire balance stale — initiate legal / recovery process' : p.bk[6] < 2000 ? 'Small stale balance — write off' : p.bk[6]>=p.total-0.5 ? 'Ghost account — recovery recommended' : 'Escalate to management'}</td></tr>`, ['b6',-1])}</div>`;
+  $$('#prSide button').forEach(b => b.onclick = () => { state.prSide = b.dataset.s; renderView(); });
+  $('#prThr').onchange = e => { state.thr = +e.target.value; renderView(); };
+  const lbls = BK().slice(3);
+  const ds = [];
+  if (P) ds.push(barDs(fmtDs(CTX.c), P.bk.slice(3).map(lakh), css('--ink3')+'80'));
+  ds.push(barDs(fmtDs(CTX.s), A.bk.slice(3).map(lakh), bColors().slice(3)));
+  chart('cPrBk', {type:'bar', data:{labels:lbls, datasets:ds}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:!!P, position:'top', align:'start', labels:{boxWidth:10,boxHeight:10}}, tooltip:{...tipStyle(), callbacks:{label:c=>`${c.dataset.label}: ${short(c.raw*1e5)}`}}}, scales:axisL(false)}});
+  const top = [...A.plist].filter(p=>p.over60>0).sort((a,b)=>b.over60-a.over60).slice(0,10);
+  const prevV = top.map(p => P ? (P.parties.get(p.pk)?.over60||0) : 0);
+  const curCol = top.map((p,i) => !P ? css('--b5') : p.over60 < prevV[i]-0.5 ? css('--green') : p.over60 > prevV[i]+0.5 ? css('--b5') : css('--b3'));
+  const tds = []; if (P) tds.push(barDs(fmtDs(CTX.c), prevV.map(lakh), css('--ink3')+'80')); tds.push(barDs(fmtDs(CTX.s), top.map(p=>lakh(p.over60)), curCol));
+  chart('cPrTop', {type:'bar', data:{labels:top.map(p=>p.name.length>24?p.name.slice(0,23)+'…':p.name), datasets:tds},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{title:c=>top[c[0].dataIndex].name, label:c=>`${c.dataset.label}: ${short(c.raw*1e5)}`}}}, scales:axisL(true), onClick:(e,els)=>{ if(els[0]) openParty(top[els[0].index].pk); }, onHover:hoverPtr}});
+}
+
+/* CASH OUTLOOK */
+function vCash(){
+  const asOf = D(CTX.s);
+  const W = 12;
+  const labels = ['Overdue now'];
+  for (let w=0; w<W; w++){ const a = ISO(asOf + (w*7+1)*DAY), b = ISO(asOf + (w*7+7)*DAY); labels.push(`${fmtDs(a)} – ${fmtDs(b)}`); }
+  labels.push('Later');
+  const slot = b => b.dueIn <= 0 ? 0 : Math.min(W+1, Math.ceil(b.dueIn/7));
+  const inn = Array(W+2).fill(0), out = Array(W+2).fill(0), inB = Array(W+2).fill(0), outB = Array(W+2).fill(0);
+  CTX.ar.forEach(b => { const s = slot(b); inn[s] += b.amt; inB[s]++; });
+  CTX.ap.forEach(b => { const s = slot(b); out[s] += b.amt; outB[s]++; });
+  const startIdx = state.cashOverdue ? 0 : 1;
+  let cum = 0;
+  const rows = labels.map((l,i) => { if (i >= startIdx) cum += inn[i] - out[i]; return {l, i, inn:inn[i], out:out[i], net:inn[i]-out[i], cum: i>=startIdx?cum:null}; });
+  const topVendors = (from, to) => { const m = {}; CTX.ap.filter(b => b.dueIn > from && b.dueIn <= to).forEach(b => m[b.party] = (m[b.party]||0)+b.amt); return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6); };
+  const topCust = (from, to) => { const m = {}; CTX.ar.filter(b => b.dueIn > from && b.dueIn <= to).forEach(b => m[b.party] = (m[b.party]||0)+b.amt); return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6); };
+  const sum = (arr, a, b) => arr.slice(a, b).reduce((s,v)=>s+v,0);
+  const el = $('#v-cash');
+  el.innerHTML = `
+  <div class="note-box"><b>How to read this.</b> Each bill is placed in the week its Tally due date falls. “Overdue now” is everything already past due — collectable today on the AR side, payable immediately on the AP side. Customer receipts rarely arrive on the due date, so treat the inflow line as the best case.</div>
+  <div class="cards">
+    ${card({lbl:'Due in next 7 days', val:short(inn[1]-out[1]), sb:`In ${short(inn[1])} · Out ${short(out[1])}`, cls:inn[1]-out[1]<0?'c-red':'c-green'})}
+    ${card({lbl:'Due in next 30 days', val:short(sum(inn,1,5)-sum(out,1,5)), sb:`In ${short(sum(inn,1,5))} · Out ${short(sum(out,1,5))}`, cls:sum(inn,1,5)-sum(out,1,5)<0?'c-red':'c-green'})}
+    ${card({lbl:'Overdue to collect', val:short(inn[0]), sb:`${inB[0]} customer bills past due`, cls:'c-ar'})}
+    ${card({lbl:'Overdue to pay', val:short(out[0]), sb:`${outB[0]} vendor bills past due`, cls:'c-ap'})}
+  </div>
+  <div class="panel"><h3>Weekly inflow vs outflow by due date <span class="r">₹ lakhs</span></h3>
+    <div class="frow" style="margin:6px 0 4px"><label style="font-size:12px;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="cashOd" ${state.cashOverdue?'checked':''}> Include overdue bills in the running net position</label></div>
+    <div class="legend"><span><i style="background:${css('--ar')}"></i>Inflow — receivables due</span><span><i style="background:${css('--ap')}"></i>Outflow — payables due</span><span><i style="background:${css('--ink')}"></i>Running net (cumulative)</span></div>
+    <div class="ch tall"><canvas id="cCash"></canvas></div></div>
+  <div class="grid2">
+    <div class="panel"><h3>Customers due in next 30 days</h3>${kvList(topCust(0,30))}</div>
+    <div class="panel"><h3>Vendors due in next 30 days</h3>${kvList(topVendors(0,30))}</div>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Week</th><th class="r">Inflow (AR)</th><th class="r">Outflow (AP)</th><th class="r">Net</th><th class="r">Running net</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td><b>${r.l}</b></td><td class="amt">${inr(r.inn)}</td><td class="amt">${inr(r.out)}</td><td class="amt ${r.net<0?'neg':'pos'}">${inr(r.net)}</td><td class="amt ${r.cum<0?'neg':'pos'}">${r.cum==null?'—':inr(r.cum)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  $('#cashOd').onchange = e => { state.cashOverdue = e.target.checked; renderView(); };
+  const shortL = labels.map((l,i) => i===0 ? 'Overdue' : i===W+1 ? 'Later' : 'Wk '+i);
+  chart('cCash', {type:'bar', data:{labels:shortL, datasets:[
+      barDs('Inflow', inn.map(lakh), css('--ar'), {order:2}), barDs('Outflow', out.map(v=>-lakh(v)), css('--ap'), {order:2, borderSkipped:'start'}),
+      {type:'line', label:'Running net', data:rows.map(r=>r.cum==null?null:lakh(r.cum)), borderColor:css('--ink'), backgroundColor:css('--ink'), borderWidth:2, pointRadius:3.5, pointBorderColor:css('--surface'), pointBorderWidth:2, tension:.2, order:1}]},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      plugins:{legend:{display:false}, tooltip:{...tipStyle(), callbacks:{title:c=>labels[c[0].dataIndex], label:c=>`${c.dataset.label}: ${short(Math.abs(c.raw)*1e5*(c.dataset.label==='Running net'&&c.raw<0?-1:1))}`}}},
+      scales:Object.assign(axisL(false), {x:Object.assign(axisL(false).x, {stacked:true}), y:Object.assign(axisL(false).y, {stacked:false})})}});
+}
+function kvList(arr){
+  if (!arr.length) return '<div class="empty">Nothing due.</div>';
+  const mx = arr[0][1];
+  return arr.map(([n,v]) => `<div class="mrow" data-party="${esc(pk(n))}" style="align-items:center"><span class="mn">${esc(n)}</span><span style="flex:0 0 32%;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:${(v/mx*100).toFixed(1)}%;background:var(--teal2)"></span></span><span class="mv" style="color:var(--ink)">${short(v)}</span></div>`).join('');
+}
+
+/* PARTIES */
+function partyUniverse(){
+  const {ar, ap} = CTX.A; const m = new Map();
+  for (const p of ar.plist) m.set(p.pk, {pk:p.pk, name:p.name, ar:p.total, ar60:p.over60, arOld:p.oldest, ap:0, apOd:0, nt:p.nt, bills:p.bills.length, arBk:p.bk});
+  for (const p of ap.plist){ const x = m.get(p.pk) || {pk:p.pk, name:p.name, ar:0, ar60:0, arOld:null, ap:0, apOd:0, nt:p.nt, bills:0, arBk:null}; x.ap = p.total; x.apOd = p.overdue; x.bills += p.bills.length; m.set(p.pk, x); }
+  return [...m.values()].map(x => Object.assign(x, {net:x.ar - x.ap, both:x.ar>0 && x.ap>0}));
+}
+function vParties(){
+  const el = $('#v-parties');
+  const all = partyUniverse();
+  const f = state.pty;
+  el.innerHTML = `
+  <div class="frow">
+    <div class="ctl grow"><label for="ptyQ">Search party</label><input id="ptyQ" class="inp" placeholder="Type a name…  (press / anywhere)" value="${esc(f.q)}"></div>
+    <div class="ctl"><label>Show</label><div class="seg" id="ptyF">${[['all','All'],['ar','Debtors'],['ap','Creditors'],['both','Both sides'],['od','AR 60+']].map(([k,l])=>`<button data-f="${k}" class="${f.filter===k?'on':''}">${l}</button>`).join('')}</div></div>
+  </div>
+  <div id="ptyTbl"></div>`;
+  const draw = () => {
+    const q = f.q.toLowerCase();
+    const rows = all.filter(x => (!q || x.name.toLowerCase().includes(q)) && (f.filter==='all' || (f.filter==='ar'&&x.ar>0) || (f.filter==='ap'&&x.ap>0) || (f.filter==='both'&&x.both) || (f.filter==='od'&&x.ar60>0)));
+    $('#ptyTbl').innerHTML = `<div class="tbl-wrap">${sortable('tPty', [{k:'name',h:'Party'},{k:'ar',h:'Receivable',r:1},{k:'ar60',h:'AR 60+',r:1},{k:'ap',h:'Payable',r:1},{k:'apOd',h:'AP past due',r:1},{k:'net',h:'Net (AR − AP)',r:1},{k:'arOld',h:'Oldest AR (d)',r:1,v:x=>x.arOld??-1},{k:'mix',h:'AR ageing',ns:1}],
+      rows, x => `<tr class="clk" data-party="${esc(x.pk)}"><td class="name">${esc(x.name)}${x.ar>0?'<span class="tag ar">AR</span>':''}${x.ap>0?'<span class="tag ap">AP</span>':''}${x.nt?'<span class="tag">non-trade</span>':''}</td><td class="amt">${x.ar?inr(x.ar):'<span class="mut">—</span>'}</td><td class="amt" style="color:var(--red)">${x.ar60?inr(x.ar60):'<span class="mut">—</span>'}</td><td class="amt">${x.ap?inr(x.ap):'<span class="mut">—</span>'}</td><td class="amt" style="color:var(--gold)">${x.apOd?inr(x.apOd):'<span class="mut">—</span>'}</td><td class="amt ${x.net<0?'neg':'pos'}">${inr(x.net)}</td><td class="amt">${x.arOld==null?'<span class="mut">—</span>':x.arOld}</td><td>${x.arBk?miniBar(x.arBk, x.ar):''}</td></tr>`,
+      ['ar',-1], `<tr><td>${rows.length} parties</td><td class="amt">${inr(rows.reduce((s,x)=>s+x.ar,0))}</td><td class="amt">${inr(rows.reduce((s,x)=>s+x.ar60,0))}</td><td class="amt">${inr(rows.reduce((s,x)=>s+x.ap,0))}</td><td class="amt">${inr(rows.reduce((s,x)=>s+x.apOd,0))}</td><td class="amt">${inr(rows.reduce((s,x)=>s+x.net,0))}</td><td colspan="2"></td></tr>`)}</div>`;
+  };
+  draw();
+  $('#ptyQ').oninput = e => { f.q = e.target.value; draw(); };
+  $$('#ptyF button').forEach(b => b.onclick = () => { f.filter = b.dataset.f; $$('#ptyF button').forEach(x=>x.classList.toggle('on', x===b)); draw(); });
+  el._redraw = draw;
+}
+
+/* REGISTER */
+function regRows(){
+  const r = state.reg, q = r.q.toLowerCase(), min = +r.min || 0;
+  let list = [...CTX.ar, ...CTX.ap];
+  if (r.side !== 'all') list = list.filter(b => b.side === r.side);
+  if (r.bucket === '60') list = list.filter(b => b.b >= 3);
+  else if (r.bucket === 'od') list = list.filter(b => b.dueIn < 0);
+  else if (r.bucket !== 'all') list = list.filter(b => b.b === +r.bucket);
+  if (q) list = list.filter(b => b.party.toLowerCase().includes(q) || b.ref.toLowerCase().includes(q));
+  if (min) list = list.filter(b => b.amt >= min);
+  return list;
+}
+function vRegister(){
+  const r = state.reg, el = $('#v-register');
+  el.innerHTML = `
+  <div class="frow">
+    <div class="ctl"><label>Ledger</label><div class="seg" id="rgSide">${[['all','Both'],['ar','Receivable'],['ap','Payable']].map(([k,l])=>`<button data-s="${k}" class="${r.side===k?'on':''}">${l}</button>`).join('')}</div></div>
+    <div class="ctl"><label for="rgB">Bucket</label><select id="rgB" class="sel"><option value="all">All buckets</option><option value="od">All past due</option><option value="60">60+ days</option>${BK().map((l,i)=>`<option value="${i}">${l}</option>`).join('')}</select></div>
+    <div class="ctl grow"><label for="rgQ">Party or bill ref</label><input id="rgQ" class="inp" placeholder="Search…" value="${esc(r.q)}"></div>
+    <div class="ctl"><label for="rgMin">Min amount ₹</label><input id="rgMin" class="inp" type="number" min="0" style="width:120px" value="${esc(r.min)}"></div>
+    <div class="ctl"><label>&nbsp;</label><button class="btn" id="rgCsv">⇩ CSV</button></div>
+  </div>
+  <div id="rgTbl"></div>`;
+  $('#rgB').value = r.bucket;
+  const draw = () => {
+    const rows = regRows();
+    const tot = rows.reduce((s,b)=>s+b.amt,0);
+    $('#rgTbl').innerHTML = `<div class="tbl-wrap">${sortable('tReg', [{k:'side',h:'Ledger'},{k:'date',h:'Bill date'},{k:'ref',h:'Ref no.'},{k:'party',h:'Party'},{k:'amt',h:'Pending',r:1},{k:'due',h:'Due on'},{k:'days',h:state.basis==='bill'?'Age (d)':'Overdue (d)',r:1},{k:'b',h:'Bucket'}],
+      rows, b => `<tr class="clk" data-party="${esc(b.pk)}"><td><span class="tag ${b.side}" style="margin:0">${b.side.toUpperCase()}</span></td><td class="mono" style="text-align:left">${fmtDs(b.date)}-${b.date.slice(2,4)}</td><td class="mut">${esc(b.ref)}</td><td class="name">${esc(b.party)}${b.nt?'<span class="tag">non-trade</span>':''}</td><td class="amt">${inr(b.amt)}</td><td class="mono" style="text-align:left">${fmtDs(b.due)}-${b.due.slice(2,4)}</td><td class="amt">${b.days>0?b.days:'<span class="mut">'+(state.basis==='bill'?0:'due in '+(-b.days))+'</span>'}</td><td>${bkBadge(b.b)}</td></tr>`,
+      [state.sorts.tReg?.k || 'days', -1])}</div><div class="tot-line"><span>${rows.length} bills</span><span>Total <b>${inr(tot)}</b></span><span>AR <b>${inr(rows.filter(b=>b.side==='ar').reduce((s,b)=>s+b.amt,0))}</b></span><span>AP <b>${inr(rows.filter(b=>b.side==='ap').reduce((s,b)=>s+b.amt,0))}</b></span></div>`;
+  };
+  draw();
+  $$('#rgSide button').forEach(b => b.onclick = () => { r.side = b.dataset.s; $$('#rgSide button').forEach(x=>x.classList.toggle('on',x===b)); draw(); });
+  $('#rgB').onchange = e => { r.bucket = e.target.value; draw(); };
+  $('#rgQ').oninput = e => { r.q = e.target.value; draw(); };
+  $('#rgMin').oninput = e => { r.min = e.target.value; draw(); };
+  $('#rgCsv').onclick = exportCsv;
+}
+function exportCsv(){
+  if (!CTX) return;
+  const rows = state.view === 'register' ? regRows() : [...CTX.ar, ...CTX.ap];
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines = [['Ledger','Bill date','Ref no.','Party','Pending','Due on','Overdue days','Bucket','Non-trade'].join(',')];
+  rows.forEach(b => lines.push([b.side.toUpperCase(), b.date, q(b.ref), q(b.party), b.amt, b.due, b.days, q(BK()[b.b]), b.nt?'Y':''].join(',')));
+  download(`Zyax_AR_AP_bills_${CTX.s}.csv`, '﻿' + lines.join('\n'), 'text/csv');
+}
+
+/* DATA QUALITY */
+function dqItems(){
+  const {ar, ap} = CTX.A, items = [];
+  const both = ar.plist.filter(p => ap.parties.has(p.pk)).map(p => ({p, ar:p.total, ap:ap.parties.get(p.pk).total}));
+  if (both.length) items.push({ic:'⇄', t:`${both.length} parties carry both a receivable and a payable`, d:`Combined ${short(both.reduce((s,x)=>s+Math.min(x.ar,x.ap),0))} could be netted off. Usually advances, credit notes or wrongly-routed receipts — reconcile so ageing on both sides is true.`, rows:both.map(x=>[x.p.pk, x.p.name, `AR ${short(x.ar)} · AP ${short(x.ap)} · net ${short(x.ar-x.ap)}`])});
+  const cn = CTX.ap.filter(b => /^CN/i.test(b.ref));
+  if (cn.length){ const m = {}; cn.forEach(b => m[b.pk] = m[b.pk] || {n:b.party, v:0, c:0}); cn.forEach(b => { m[b.pk].v += b.amt; m[b.pk].c++; });
+    items.push({ic:'↺', t:`${cn.length} customer credit notes are sitting in Bills Payable`, d:`${short(cn.reduce((s,b)=>s+b.amt,0))} of “payables” are credit notes (CN/…) that should be adjusted against the customer's open invoices bill-by-bill in Tally.`, rows:Object.entries(m).map(([k,x])=>[k, x.n, `${x.c} CN · ${short(x.v)}`])}); }
+  const tiny = [...CTX.ar, ...CTX.ap].filter(b => b.amt < 1000 && b.days > 90);
+  if (tiny.length){ const m = {}; tiny.forEach(b => { const k = b.side+b.pk; m[k] = m[k] || {pk:b.pk, n:b.party, s:b.side, v:0, c:0}; m[k].v += b.amt; m[k].c++; });
+    items.push({ic:'¢', t:`${tiny.length} small bills under ₹1,000 older than 90 days`, d:`Total ${short(tiny.reduce((s,b)=>s+b.amt,0))}. Rounding differences, bank charges or short-payments — write off / adjust to clean the ageing.`, rows:Object.values(m).sort((a,b)=>b.c-a.c).map(x=>[x.pk, x.n, `${x.s.toUpperCase()} · ${x.c} bills · ${short(x.v)}`])}); }
+  const nt = [...ar.plist.filter(p=>p.nt).map(p=>({p,s:'AR'})), ...ap.plist.filter(p=>p.nt).map(p=>({p,s:'AP'}))];
+  if (nt.length) items.push({ic:'⚑', t:`${nt.length} non-trade ledgers mixed into debtors / creditors`, d:`Employee advances, TDS, commission and expense ledgers (${short(nt.reduce((s,x)=>s+x.p.total,0))}) inflate trade ageing. Use “Trade only” in the top bar to exclude them, or reclassify any party from its drill-down.`, rows:nt.map(x=>[x.p.pk, x.p.name, `${x.s} · ${short(x.p.total)}`])});
+  const noTerms = CTX.ar.filter(b => b.due === b.date);
+  if (noTerms.length) items.push({ic:'⏱', t:`${pct(noTerms.length, CTX.ar.length)} of receivable bills have no credit period set`, d:`${noTerms.length} of ${CTX.ar.length} customer bills have due date = bill date, so they show overdue from day one. Capture agreed credit days on the party master in Tally for a fair “overdue” figure.`, rows:[]});
+  const gh = ar.plist.filter(isGhost);
+  if (gh.length) items.push({ic:'🚨', t:`${gh.length} receivable accounts look abandoned`, d:`${short(gh.reduce((s,p)=>s+p.total,0))} with nothing billed in 30 days and balances past 150 days — candidates for provisioning.`, rows:gh.map(p=>[p.pk, p.name, short(p.total)])});
+  return items;
+}
+function vQuality(){
+  const items = dqItems();
+  $('#v-quality').innerHTML = items.length ? items.map(it => `<div class="panel"><h3><span style="font-size:15px">${it.ic}</span> ${it.t}</h3><p style="font-size:12.5px;color:var(--ink2);margin:4px 0 ${it.rows.length?10:0}px">${it.d}</p>${it.rows.length?`<div style="columns:2 320px;column-gap:24px">${it.rows.map(([k,n,v])=>`<div class="mrow" data-party="${esc(k)}" style="break-inside:avoid"><span class="mn">${esc(n)}</span><span class="mv" style="color:var(--ink2)">${v}</span></div>`).join('')}</div>`:''}</div>`).join('') : '<div class="empty">No data-quality flags. 🎉</div>';
+}
+
+/* DRAWER */
+function openParty(key){
+  if (!CTX) return;
+  const a = CTX.A.ar.parties.get(key) || agg(bills(CTX.s,'ar').filter(b=>b.pk===key)).plist[0];
+  const p = CTX.A.ap.parties.get(key) || agg(bills(CTX.s,'ap').filter(b=>b.pk===key)).plist[0];
+  const name = (a||p)?.name || [...dates()].reverse().map(d => [...(SNAPS[d].ar||[]), ...(SNAPS[d].ap||[])].find(r => pk(r[2])===key)).find(Boolean)?.[2] || key;
+  const nt = isNT(name);
+  $('#drTitle').textContent = name;
+  $('#drSub').textContent = [a?'Customer':'', p?'Vendor':'', nt?'Non-trade ledger':'Trade ledger'].filter(Boolean).join(' · ') || 'No open balance on this date';
+  const pa = CTX.P?.ar.parties.get(key), pp = CTX.P?.ap.parties.get(key);
+  const hist = dates().map(d => { const ra = (SNAPS[d].ar||[]).filter(r=>pk(r[2])===key).reduce((s,r)=>s+(+r[3]||0),0), rp = (SNAPS[d].ap||[]).filter(r=>pk(r[2])===key).reduce((s,r)=>s+(+r[3]||0),0); return {d, ra, rp}; });
+  const billTbl = (P, side) => !P ? '' : `<div class="sec-title" style="margin-top:20px">${side==='ar'?'Receivable bills':'Payable bills'}<span class="r">${P.bills.length} · ${inr(P.total)}</span></div>
+    <div class="legend">${BK().map((l,i)=>P.bk[i]?`<span><i style="background:${bColors()[i]}"></i>${l}: <b>${short(P.bk[i])}</b></span>`:'').join('')}</div>${miniBar(P.bk, P.total)}
+    <div class="tbl-wrap" style="margin-top:10px;max-height:380px"><table><thead><tr><th>Bill date</th><th>Ref</th><th class="r">Pending</th><th>Due</th><th class="r">Days</th><th>Bucket</th></tr></thead><tbody>${[...P.bills].sort((x,y)=>y.days-x.days).map(b=>`<tr><td class="mono" style="text-align:left">${fmtD(b.date)}</td><td class="mut">${esc(b.ref)}</td><td class="amt">${inr(b.amt)}</td><td class="mono" style="text-align:left">${fmtD(b.due)}</td><td class="amt">${b.days>0?b.days:'—'}</td><td>${bkBadge(b.b)}</td></tr>`).join('')}</tbody></table></div>`;
+  $('#drBody').innerHTML = `
+    <div class="cards">
+      ${card({lbl:'Receivable', val:a?short(a.total):'—', sb:a?`${a.bills.length} bills · ${a.oldest>0?'oldest '+a.oldest+'d overdue':'all within terms'}`:'No open bills', cls:'c-ar', dl:CTX.P&&(a||pa)?delta(a?a.total:0, pa?pa.total:0, true):''})}
+      ${card({lbl:'AR 60+', val:a?short(a.over60):'—', sb:a?pct(a.over60,a.total)+' of balance':'', cls:'c-red'})}
+      ${card({lbl:'Payable', val:p?short(p.total):'—', sb:p?`${p.bills.length} bills · ${short(p.overdue)} past due`:'No open bills', cls:'c-ap', dl:CTX.P&&(p||pp)?delta(p?p.total:0, pp?pp.total:0, true):''})}
+      ${card({lbl:'Net (AR − AP)', val:short((a?a.total:0)-(p?p.total:0)), sb:a&&p?'Net-off candidate':'', cls:((a?a.total:0)-(p?p.total:0))<0?'c-red':'c-green'})}
+    </div>
+    ${a ? `<div class="note-box" style="margin-bottom:0"><b>Action:</b> ${esc(noteFor('ar', a) || 'Within terms — routine follow-up.')}</div>` : ''}
+    ${hist.length>1?`<div class="panel" style="margin-top:16px"><h3>Balance across report dates</h3><div class="ch sm"><canvas id="cDrH"></canvas></div></div>`:''}
+    ${billTbl(a,'ar')}${billTbl(p,'ap')}
+    <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="drNt">${nt?'Mark as trade ledger':'Mark as non-trade ledger'}</button><button class="btn" id="drReg">Open in Bill Register</button></div>`;
+  $('#drNt').onclick = () => { local.overrides[key] = nt ? 'trade' : 'nontrade'; persist(); renderAll(); openParty(key); toast(`${name} marked as ${nt?'trade':'non-trade'}`); };
+  $('#drReg').onclick = () => { state.reg = {side:'all', bucket:'all', q:name, min:''}; closeDrawer(); setView('register'); };
+  $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); $('#drawer').setAttribute('aria-hidden','false');
+  if (hist.length > 1) setTimeout(() => chart('cDrH', {type:'line', data:{labels:hist.map(h=>fmtDs(h.d)), datasets:[
+      {label:'Receivable', data:hist.map(h=>lakh(h.ra)), borderColor:css('--ar'), backgroundColor:css('--ar'), borderWidth:2, pointRadius:3, tension:.25},
+      {label:'Payable', data:hist.map(h=>lakh(h.rp)), borderColor:css('--ap'), backgroundColor:css('--ap'), borderWidth:2, pointRadius:3, tension:.25}]},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'top',align:'start',labels:{boxWidth:10,boxHeight:10}}, tooltip:{...tipStyle(), callbacks:{label:c=>`${c.dataset.label}: ${short(c.raw*1e5)}`}}}, scales:axisL(false)}}), 260);
+}
+function closeDrawer(){ $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); $('#drawer').setAttribute('aria-hidden','true'); }
+$('#drClose').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
+
+/* ───────── File loading & parsing ───────── */
+let PENDING = [];
+function serialToISO(n){ return ISO(Math.round((n - 25569) * DAY)); }
+function parseDate(v){
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return v > 20000 && v < 80000 ? serialToISO(v) : null;
+  if (v instanceof Date) return ISO(Date.UTC(v.getFullYear(), v.getMonth(), v.getDate()));
+  const s = String(v).trim();
+  let m = s.match(/^(\d{1,2})[-\s/.]([A-Za-z]{3,9})[-\s/.,]*(\d{2,4})$/);
+  if (m){ const mi = MON.findIndex(x => x.toLowerCase() === m[2].slice(0,3).toLowerCase()); if (mi < 0) return null; let y = +m[3]; if (y < 100) y += 2000; return ISO(Date.UTC(y, mi, +m[1])); }
+  m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+  if (m){ let y = +m[3]; if (y < 100) y += 2000; return ISO(Date.UTC(y, +m[2]-1, +m[1])); }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  return null;
+}
+function parseAmt(v, side){
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).trim(); const n = parseFloat(s.replace(/[₹,\s]/g,'').replace(/(Dr|Cr)$/i,''));
+  if (isNaN(n)) return null;
+  const cr = /cr\s*$/i.test(s), dr = /dr\s*$/i.test(s);
+  if (side === 'ar' && cr) return -n; if (side === 'ap' && dr) return -n; return n;
+}
+function parseSheet(rows, sheetName, fileName){
+  const top = rows.slice(0, 14).map(r => (r||[]).filter(x => x != null).join(' ')).join(' | ');
+  let side = /bills?\s*receivable|receivables?|debtors/i.test(top) ? 'ar' : /bills?\s*payable|payables?|creditors/i.test(top) ? 'ap' : null;
+  if (!side) side = /\bAR\b|receiv|debtor/i.test(sheetName) ? 'ar' : /\bAP\b|payab|creditor/i.test(sheetName) ? 'ap' : /\bAR\b|receiv|debtor/i.test(fileName) ? 'ar' : /\bAP\b|payab|creditor/i.test(fileName) ? 'ap' : null;
+  let hr = -1;
+  for (let i = 0; i < Math.min(rows.length, 40); i++){ const r = (rows[i]||[]).map(x => String(x ?? '').toLowerCase()); if (r.some(x => x.includes('party')) && r.some(x => x.includes('pending'))){ hr = i; break; } }
+  if (hr < 0) return {error:'Could not find the header row (expects “Party\'s Name” and “Pending” columns).', sheetName, fileName};
+  const H = rows[hr].map(x => String(x ?? '').toLowerCase().trim());
+  const col = re => H.findIndex(h => re.test(h));
+  const ci = {date:col(/^date$|bill\s*date/), ref:col(/ref/), party:col(/party/), amt:col(/pending/), due:col(/due/), od:col(/overdue/)};
+  if (ci.date < 0) ci.date = 0;
+  // as-of date
+  let asOf = null; const pm = top.match(/(\d{1,2}-[A-Za-z]{3,9}-\d{2,4})\s*to\s*(\d{1,2}-[A-Za-z]{3,9}-\d{2,4})/i);
+  const period = pm ? pm[0] : null;
+  if (pm) asOf = parseDate(pm[2]);
+  const out = []; let last = null; let skipped = 0;
+  for (let i = hr+1; i < rows.length; i++){
+    const r = rows[i] || []; const party = r[ci.party], amt = parseAmt(r[ci.amt], side), d = parseDate(r[ci.date]);
+    const pTxt = party == null ? '' : String(party).trim();
+    if (/^(grand\s*)?total/i.test(pTxt) || /^(grand\s*)?total/i.test(String(r[0]??''))) continue;
+    if (pTxt && amt == null && !d){ last = pTxt; continue; }
+    if (amt == null || !d){ if (r.some(x => x != null && x !== '')) skipped++; continue; }
+    const due = parseDate(r[ci.due]) || d;
+    if (!asOf && ci.od >= 0 && r[ci.od] != null && !isNaN(+r[ci.od])) asOf = ISO(D(due) + (+r[ci.od])*DAY);
+    out.push([d, String(r[ci.ref] ?? '').trim(), clean(pTxt || last || 'Unknown'), Math.round(amt*100)/100, due]);
+  }
+  if (!asOf) asOf = ISO(Date.now() + 5.5*3600e3);
+  if (!side) return {error:'Could not tell whether this is Receivable or Payable (title row, sheet name and file name were all ambiguous).', sheetName, fileName, rows:out};
+  return {side, rows:out, asOf, period, sheetName, fileName, skipped, total:out.reduce((s,r)=>s+r[3],0)};
+}
+async function readFiles(files){
+  if (!window.XLSX){ toast('Spreadsheet reader failed to load — check your internet connection'); return; }
+  const res = [];
+  for (const f of files){
+    try {
+      const buf = await f.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array', cellDates:false});
+      for (const sn of wb.SheetNames){
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header:1, raw:true, defval:null, blankrows:false});
+        if (!rows.length) continue;
+        const p = parseSheet(rows, sn, f.name);
+        if (p.error && !rows.some(r => (r||[]).some(x => /pending/i.test(String(x??''))))) continue; // ignore unrelated sheets
+        res.push(p);
+      }
+    } catch(e){ res.push({error:'Could not read file: ' + e.message, fileName:f.name, sheetName:''}); }
+  }
+  // de-dupe: later file wins per side
+  PENDING = res;
+  showParsed();
+}
+function showParsed(){
+  const ok = PENDING.filter(p => !p.error);
+  const asOfs = [...new Set(ok.map(p => p.asOf))];
+  $('#parsed').innerHTML = PENDING.map(p => p.error
+    ? `<div class="pf"><span class="sd err">ERROR</span><div><b>${esc(p.fileName)}</b>${p.sheetName?' · '+esc(p.sheetName):''}<div class="meta">${esc(p.error)}</div></div></div>`
+    : `<div class="pf"><span class="sd ${p.side}">${p.side==='ar'?'RECEIVABLE':'PAYABLE'}</span><div style="flex:1"><b>${esc(p.fileName)}</b> · ${esc(p.sheetName)}<div class="meta">${p.rows.length} bills · ${inr(p.total)} · as of ${fmtD(p.asOf)}${p.period?' ('+esc(p.period)+')':''}${p.skipped?` · ${p.skipped} unreadable rows skipped`:''}</div></div>${SNAPS[p.asOf]?'<span class="meta">replaces</span>':'<span class="meta" style="color:var(--green)">new day</span>'}</div>`).join('');
+  const sides = new Set(ok.map(p => p.side));
+  let msg = '';
+  if (!ok.length) msg = 'No usable sheets found yet.';
+  else if (asOfs.length > 1) msg = `Files carry different report dates (${asOfs.map(fmtDs).join(', ')}) — each will be stored as its own day.`;
+  else if (sides.size < 2) msg = `Only ${[...sides][0]==='ar'?'Receivables':'Payables'} found — the other side will be carried from the latest earlier date.`;
+  else msg = `Ready: report date ${fmtD(asOfs[0])}.`;
+  $('#loadMsg').textContent = msg;
+  $('#btnApply').disabled = !ok.length;
+}
+function applyPending(){
+  const ok = PENDING.filter(p => !p.error); if (!ok.length) return;
+  const byDate = {};
+  ok.forEach(p => { (byDate[p.asOf] = byDate[p.asOf] || {}); byDate[p.asOf][p.side] = p; });
+  let lastD = null;
+  for (const [d, sides] of Object.entries(byDate)){
+    const existing = SNAPS[d];
+    const prevD = dates().filter(x => x < d).pop();
+    const snap = {asOf:d, period:(sides.ar||sides.ap).period, loadedAt:new Date().toISOString(), files:[...new Set(Object.values(sides).map(p=>p.fileName))], carried:[]};
+    for (const s of ['ar','ap']){
+      if (sides[s]) snap[s] = sides[s].rows;
+      else if (existing && existing[s]) snap[s] = existing[s];
+      else if (prevD && SNAPS[prevD][s]){ snap[s] = SNAPS[prevD][s]; snap.carried.push(s); }
+      else snap[s] = [];
+    }
+    local.snaps[d] = snap; local.deleted = local.deleted.filter(x => x !== d);
+    lastD = !lastD || d > lastD ? d : lastD;
+  }
+  persist(); rebuildSnaps();
+  state.snap = lastD; state.cmp = null;
+  closeModal(); renderAll();
+  const A = CTX.A;
+  toast(`Updated to ${fmtD(lastD)} · AR ${short(A.ar.total)} · AP ${short(A.ap.total)}${CTX.c?' · compared with '+fmtDs(CTX.c):''}`);
+}
+function openModal(){ PENDING = []; $('#parsed').innerHTML = ''; $('#btnApply').disabled = true; $('#loadMsg').textContent = 'The report date is read from the file\'s period line (e.g. “1-Apr-26 to 22-Oct-26”).'; $('#mLoad').classList.add('on'); }
+function closeModal(){ $('#mLoad').classList.remove('on'); $('#fileIn').value = ''; }
+$('#btnLoad').onclick = openModal;
+$$('#mLoad [data-close]').forEach(b => b.onclick = closeModal);
+$('#mLoad').addEventListener('click', e => { if (e.target.id === 'mLoad') closeModal(); });
+$('#drop').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = e => readFiles([...e.target.files]);
+['dragenter','dragover'].forEach(ev => $('#drop').addEventListener(ev, e => { e.preventDefault(); $('#drop').classList.add('over'); }));
+['dragleave','drop'].forEach(ev => $('#drop').addEventListener(ev, e => { e.preventDefault(); $('#drop').classList.remove('over'); }));
+$('#drop').addEventListener('drop', e => readFiles([...e.dataTransfer.files]));
+// drop anywhere on page opens loader
+document.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types||[])].includes('Files')) e.preventDefault(); });
+document.addEventListener('drop', e => { if (e.target.closest('#drop')) return; if (e.dataTransfer?.files?.length){ e.preventDefault(); openModal(); readFiles([...e.dataTransfer.files]); } });
+$('#btnApply').onclick = applyPending;
+
+/* ───────── Controls ───────── */
+function fillSelectors(){
+  const ds = dates().slice().reverse();
+  $('#selSnap').innerHTML = ds.map(d => `<option value="${d}">${fmtD(d)}${SNAPS[d]?.carried?.length?' *':''}</option>`).join('') || '<option>—</option>';
+  $('#selSnap').value = state.snap || '';
+  const older = ds.filter(d => d < state.snap);
+  $('#selCmp').innerHTML = `<option value="none">No comparison</option>` + older.map(d => `<option value="${d}">${fmtD(d)}</option>`).join('');
+  $('#selCmp').value = CTX?.c || 'none';
+  $$('#segBasis button').forEach(b => b.classList.toggle('on', b.dataset.b === state.basis));
+  $$('#segTrade button').forEach(b => b.classList.toggle('on', b.dataset.t === state.trade));
+}
+$('#selSnap').onchange = e => { state.snap = e.target.value; state.cmp = null; renderAll(); };
+$('#selCmp').onchange = e => { state.cmp = e.target.value; renderAll(); };
+$$('#segBasis button').forEach(b => b.onclick = () => { state.basis = b.dataset.b; local.prefs.basis = state.basis; persist(); renderAll(); });
+$$('#segTrade button').forEach(b => b.onclick = () => { state.trade = b.dataset.t; local.prefs.trade = state.trade; persist(); renderAll(); });
+$$('#nav button').forEach(b => b.onclick = () => setView(b.dataset.v));
+function applyTheme(t){ if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); }
+$('#btnTheme').onclick = () => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  local.prefs.theme = dark ? 'light' : 'dark'; applyTheme(local.prefs.theme); persist(); chartBase(); renderView(); };
+applyTheme(local.prefs.theme);
+$('#btnMenu').onclick = e => { e.stopPropagation(); $('#menu').classList.toggle('open'); };
+document.addEventListener('click', e => { if (!e.target.closest('.menu-wrap')) $('#menu').classList.remove('open'); });
+$('#menu').onclick = e => { const b = e.target.closest('[data-a]'); if (!b) return; $('#menu').classList.remove('open'); ACTIONS[b.dataset.a](); };
+const ACTIONS = {
+  savehtml(){
+    const all = {v:1, snaps:SNAPS};
+    const json = JSON.stringify(all).replace(/</g, '\\u003c');
+    let html = PRISTINE.replace(/(<script id="seed" type="application\/json">)[\s\S]*?(<\/script>)/, (m, a, b) => a + json + b);
+    html = html.replace(/<html([^>]*)\sdata-theme="[^"]*"/, '<html$1');
+    download(`Zyax_AR_AP_Dashboard_${state.snap||'latest'}.html`, html, 'text/html');
+    toast(`Saved with ${dates().length} report date${dates().length>1?'s':''} embedded — upload this file to replace the hosted copy`);
+  },
+  print(){ window.print(); },
+  csv(){ exportCsv(); },
+  exphist(){ download(`Zyax_AR_AP_history_${state.snap}.json`, JSON.stringify({v:1, snaps:SNAPS, overrides:local.overrides}), 'application/json'); },
+  imphist(){ $('#histIn').click(); },
+  delsnap(){
+    if (!state.snap) return;
+    if (dates().length < 2){ toast('This is the only report date — load another day first'); return; }
+    const d = state.snap; delete local.snaps[d]; if (SEED.snaps?.[d]) local.deleted.push(d); persist(); rebuildSnaps(); state.snap = null; state.cmp = null; renderAll(); toast(`Removed ${fmtD(d)}`); }
+};
+$('#histIn').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const j = JSON.parse(await f.text()); let n = 0;
+    for (const [d, s] of Object.entries(j.snaps || {})){ if (s && (s.ar || s.ap)){ local.snaps[d] = s; local.deleted = local.deleted.filter(x=>x!==d); n++; } }
+    Object.assign(local.overrides, j.overrides || {}); persist(); rebuildSnaps(); state.snap = null; state.cmp = null; renderAll(); toast(`Imported ${n} report date${n===1?'':'s'}`);
+  } catch(err){ toast('That file is not a valid history export'); }
+  e.target.value = '';
+};
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ closeDrawer(); closeModal(); }
+  if (e.key === '/' && !/input|select|textarea/i.test(document.activeElement.tagName)){ e.preventDefault(); setView('parties'); setTimeout(()=>$('#ptyQ')?.focus(), 50); }
+});
+if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (!local.prefs.theme){ chartBase(); renderView(); } });
+
+/* boot */
+const hv = (location.hash||'').slice(1);
+if (TITLES[hv]) state.view = hv;
+$$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === state.view));
+$$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-'+state.view));
+renderAll();
+window.__dash = {state, SNAPS:()=>SNAPS, parseSheet, CTX:()=>CTX};
+})();
+</script>
+</body>
+</html>
